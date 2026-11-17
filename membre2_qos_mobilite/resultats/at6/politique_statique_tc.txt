@@ -1,0 +1,6 @@
+== ue1 ==
+qdisc tbf 8001: root refcnt 2 rate 100Mbit burst 256Kb lat 50ms 
+== ue2 ==
+qdisc tbf 8002: root refcnt 2 rate 5Mbit burst 32Kb lat 50ms 
+== ue3 ==
+qdisc fq_codel 0: root refcnt 2 limit 10240p flows 1024 quantum 1400 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
