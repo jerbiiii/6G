@@ -1,0 +1,355 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: at11-orch
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orch-app-script
+  namespace: at11-orch
+data:
+  server.py: |
+    import http.server
+    import socketserver
+    import json
+    import time
+    import os
+    import multiprocessing
+    from urllib.parse import urlparse, parse_qs
+
+    SERVICE = os.environ.get("SERVICE_NAME", "workload-app")
+    TIER = os.environ.get("SERVICE_TIER", "UNKNOWN")
+    NODE = os.environ.get("MY_NODE_NAME", "UNKNOWN")
+
+    def cpu_burn_proc(duration):
+        t_end = time.time() + duration
+        while time.time() < t_end:
+            _ = sum(i * i for i in range(10000))
+
+    active_processes = []
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            global active_processes
+            parsed = urlparse(self.path)
+            qs = parse_qs(parsed.query)
+            start_time = time.time()
+            
+            if parsed.path in ["/health", "/", "/info"]:
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                resp = {
+                    "status": "UP",
+                    "service": SERVICE,
+                    "tier": TIER,
+                    "node": NODE,
+                    "timestamp": round(time.time(), 2)
+                }
+                self.wfile.write(json.dumps(resp, indent=2).encode())
+                
+            elif parsed.path == "/compute":
+                val = sum(i * i for i in range(25000))
+                elapsed_ms = (time.time() - start_time) * 1000
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                resp = {
+                    "status": "SUCCESS",
+                    "service": SERVICE,
+                    "tier": TIER,
+                    "node": NODE,
+                    "compute_result": val,
+                    "processing_time_ms": round(elapsed_ms, 3)
+                }
+                self.wfile.write(json.dumps(resp, indent=2).encode())
+                
+            elif parsed.path == "/stress":
+                duration = int(qs.get("duration", [25])[0])
+                workers = int(qs.get("workers", [2])[0])
+                for p in active_processes:
+                    if p.is_alive():
+                        p.terminate()
+                active_processes = []
+                for _ in range(workers):
+                    p = multiprocessing.Process(target=cpu_burn_proc, args=(duration,))
+                    p.daemon = True
+                    p.start()
+                    active_processes.append(p)
+                    
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                resp = {
+                    "status": "STRESS_GENERATED",
+                    "service": SERVICE,
+                    "node": NODE,
+                    "duration_seconds": duration,
+                    "workers": workers
+                }
+                self.wfile.write(json.dumps(resp, indent=2).encode())
+                
+            elif parsed.path == "/stop-stress":
+                for p in active_processes:
+                    if p.is_alive():
+                        p.terminate()
+                active_processes = []
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                resp = {"status": "STRESS_STOPPED", "service": SERVICE, "node": NODE}
+                self.wfile.write(json.dumps(resp, indent=2).encode())
+                
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        def log_message(self, format, *args):
+            return
+
+    PORT = 8080
+    socketserver.TCPServer.allow_reuse_address = True
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Server {SERVICE} ({TIER}) on node {NODE} started on port {PORT}")
+        httpd.serve_forever()
+---
+# 1. Service app-edge (sur vm-ran, NodePort 30091)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-edge
+  namespace: at11-orch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-edge
+  template:
+    metadata:
+      labels:
+        app: app-edge
+        tier: edge
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: vm-ran
+      containers:
+      - name: python-app
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: SERVICE_NAME
+          value: "app-edge"
+        - name: SERVICE_TIER
+          value: "EDGE"
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        configMap:
+          name: orch-app-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-edge
+  namespace: at11-orch
+spec:
+  type: NodePort
+  selector:
+    app: app-edge
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30091
+---
+# 2. Service app-fog (sur vm-upf, NodePort 30092)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-fog
+  namespace: at11-orch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-fog
+  template:
+    metadata:
+      labels:
+        app: app-fog
+        tier: fog
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: vm-upf
+      containers:
+      - name: python-app
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: SERVICE_NAME
+          value: "app-fog"
+        - name: SERVICE_TIER
+          value: "FOG"
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        configMap:
+          name: orch-app-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-fog
+  namespace: at11-orch
+spec:
+  type: NodePort
+  selector:
+    app: app-fog
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30092
+---
+# 3. Service app-cloud (sur vm-cp, NodePort 30093)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-cloud
+  namespace: at11-orch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-cloud
+  template:
+    metadata:
+      labels:
+        app: app-cloud
+        tier: cloud
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: vm-cp
+      containers:
+      - name: python-app
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: SERVICE_NAME
+          value: "app-cloud"
+        - name: SERVICE_TIER
+          value: "CLOUD"
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        configMap:
+          name: orch-app-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-cloud
+  namespace: at11-orch
+spec:
+  type: NodePort
+  selector:
+    app: app-cloud
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30093
+---
+# 4. Deployment workload-app (initialement sur vm-ran, NodePort 30090)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workload-app
+  namespace: at11-orch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workload-app
+  template:
+    metadata:
+      labels:
+        app: workload-app
+        tier: edge
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: vm-ran
+      containers:
+      - name: python-app
+        image: python:3.11-alpine
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: SERVICE_NAME
+          value: "workload-app"
+        - name: SERVICE_TIER
+          value: "EDGE"
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        configMap:
+          name: orch-app-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workload-app
+  namespace: at11-orch
+spec:
+  type: NodePort
+  selector:
+    app: workload-app
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30090
