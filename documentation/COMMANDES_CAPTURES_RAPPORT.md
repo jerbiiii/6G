@@ -268,3 +268,56 @@ sudo k3s kubectl get pods -n at11-orch -o wide
 curl -s http://172.31.38.166:30090/health
 ```
 📸 **Ce que montre la capture :** Le pod `workload-app` tourne désormais sur `vm-upf` (Node: `vm-upf`) et répond en JSON confirmant son nouvel emplacement d'exécution sans interruption de service (RTT ~1.4 ms).
+
+
+---
+
+## 🤖 ATELIER 11 — Orchestration Intelligente des Ressources 6G
+
+### Capture 16 : Déploiement initial des microservices 6G et services NodePort (vm-cp)
+**Où :** Sur `vm-cp` (via VM principale).
+```bash
+ssh -i .\6g-team-key.pem ubuntu@13.48.10.213
+ssh ubuntu@172.31.47.81
+
+# Commande à capturer :
+sudo k3s kubectl get pods,svc -n at11-orch -o wide
+```
+📸 **Ce que montre la capture :** Les 4 pods déployés sur leurs nœuds respectifs (Edge/Fog/Cloud) et les services NodePort 30090 à 30093.
+
+---
+
+### Capture 17 : Exécution complète de la boucle d'orchestration intelligente (vm-cp)
+**Où :** Sur `vm-cp`.
+```bash
+# Commande à capturer :
+cat ~/at11-scenario.log | grep -A 45 "ORCHESTRATEUR INTELLIGENT DE RESSOURCES 6G"
+```
+📸 **Ce que montre la capture :** Les 5 itérations de l'orchestrateur Python autonome avec :
+- Détection du pic CPU à **78%** sur `vm-ran` (seuil 50% dépassé)
+- Élection automatique de `vm-upf` comme nœud cible (CPU : 2%)
+- Scale UP `app-fog` (1 → 2 répliques)
+- Migration à chaud de `workload-app` vers `vm-upf`
+
+---
+
+### Capture 18 : Tableau comparatif final CPU et distribution des pods (vm-cp)
+**Où :** Sur `vm-cp`.
+```bash
+# Commande à capturer :
+cat ~/at11-scenario.log | grep -A 35 "RAPPORT FINAL ET TABLEAU COMPARATIF"
+```
+📸 **Ce que montre la capture :** Synthèse comparative CPU par nœud (T0 Repos → T_pic Surcharge → T_fin Stabilisé) et évolution de la distribution des pods.
+
+---
+
+### Capture 19 : Preuve de migration dynamique et continuité de service (vm-cp)
+**Où :** Sur `vm-cp`.
+```bash
+# Commande à capturer :
+sudo k3s kubectl get pods -n at11-orch -o wide
+curl -s http://172.31.38.166:30090/health
+```
+📸 **Ce que montre la capture :**
+- `workload-app` s'exécute désormais sur `vm-upf` (Fog), confirmant la migration réussie.
+- Réponse JSON `{"status":"UP","node":"vm-upf"}` prouvant la continuité de service sans interruption.
