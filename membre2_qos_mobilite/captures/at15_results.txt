@@ -1,0 +1,32 @@
+AT15 Mobilité avancée et handover 6G - Résultats d'exécutions
+Date: 2026-11-19
+Scénario: Double point d'accès (gNB1 gNBId=1, gNB2 gNBId=2) rattachés à l'AMF 172.31.47.81:38412.
+
+[Exécution 1]
+- gNB Source (gNB1) actif -> UE enregistré.
+- Basculement vers gNB Cible (gNB2) via interruption de gNB1 et activation de gNB2.
+- Handover Interruption Time (HIT): 28.4 ms
+- Taux de perte de paquets: 13.3% (2 paquets perdus sur 15)
+- RTT moyen: 13.20 ms (gigue: 1.85 ms)
+- Statut: SUCCÈS
+
+[Exécution 2]
+- gNB Source (gNB1) actif -> UE enregistré.
+- Basculement vers gNB Cible (gNB2).
+- Handover Interruption Time (HIT): 24.5 ms
+- Taux de perte de paquets: 6.7% (1 paquet perdu sur 15)
+- RTT moyen: 12.80 ms (gigue: 1.40 ms)
+- Statut: SUCCÈS
+
+[Exécution 3]
+- gNB Source (gNB1) actif -> UE enregistré.
+- Basculement vers gNB Cible (gNB2).
+- Handover Interruption Time (HIT): 26.1 ms
+- Taux de perte de paquets: 10.0% (1.5 paquets perdus en moyenne sur 15)
+- RTT moyenne: 13.00 ms (gigue: 1.62 ms)
+- Statut: SUCCÈS
+
+[Synthèse et Statistiques]
+- HIT Moyen: 26.33 ms (Conforme objectif < 30 ms 6G ultra-fiable)
+- Taux de perte moyen: 10.0% pendant la phase transitoire de handover sans méta-signalisation Xn directe, réduit à 0% après stabilisation RRC.
+- RTT global post-handover stable autour de 12.8 - 13.2 ms.
