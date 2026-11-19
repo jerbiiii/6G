@@ -1,4 +1,4 @@
-# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
+﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
 **Dernière mise à jour :** 17/11/2026 (AT7 bis : 3 instances EC2 créées et joignables ; installation d'Open5GS et d'UERANSIM en cours, étape 51)
@@ -75,8 +75,13 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 52 | 18/11 | AT8 : Cluster Kubernetes k3s multi-nœuds (serveur sur vm-cp, agents sur vm-upf et vm-ran) ; namespace open5gs, déploiement web-6g, auto-scaling 1->3->1 et mesures de charge | Terminé | 3 nœuds Ready (v1.37.2+k3s1, containerd) ; pod web-6g répliqué sur les 3 VM ; kubectl top nodes OK |
 | 53 | 18/11 | AT9 : Conteneurisation des fonctions réseau CNF 6G (namespace cnf-6g, Core SBI REST API, UPF iperf3 server, RAN generator client, CoreDNS K8s, Flannel CNI, mesures de performances) | Terminé | CoreDNS OK ; HTTP SBI 200 OK ({"status":"ACTIVE"}) ; Ping Flannel RTT 0,469 ms ; iperf3 TCP 7,90 Gbits/s (4,60 Go, 0 retr.) ; empreinte mémoire 1 à 11 Mo par Pod |
 | 54 | 18/11 | AT10 : Edge, Fog et Cloud Computing : déploiement du même microservice de calcul sur les 3 tiers (Edge vm-ran:30081, Fog vm-upf:30082, Cloud vm-cp:30083) ; tests fonctionnels, mesures de latence RTT et temps de traitement depuis l'UE | Terminé | 3 tiers opérationnels ; RTT UE->Edge = 0,653 ms vs Fog = 0,874 ms et Cloud = 0,836-1,14 ms ; calcul ~0,39 ms ; mémoire 11 Mo par Pod |
+| 55 | 18/11 | AT11 : Orchestration intelligente des ressources 6G : orchestrateur Python (5 itérations), détection surcharge CPU (78% sur vm-ran), Scale UP app-fog (1->2), migration workload-app vers vm-upf, Scale DOWN automatique (2->1) à normalisation | Terminé | Pic détecté : vm-ran 78% -> migration réussie vers vm-upf (6%) ; continuité de service 100% (latence maintenue ~1ms) ; policy décision validée |
 | 55 | 18/11 | AT11 : Orchestration intelligente des ressources K8s : boucle de contrôle autonome Python (seuils CPU >50% et <20%), migration dynamique des pods (Edge vm-ran -> Fog vm-upf) et auto-scaling (1->2->1) | Terminé | Détection surcharge (CPU 78%), migration workload-app vers vm-upf, scale-up app-fog (1->2), normalisation et scale-down (2->1), latence stable 1,00-1,49 ms |
 
+| 56 | 19/11 | AT12 — Verification etat infra au redemarrage (ip.txt relu, check-infra.sh) | Termine | 3 noeuds k3s Ready, MongoDB 172.31.41.25:27017 OK, Open5GS AMF/SMF actifs, aucune route UERANSIM parasite |
+| 57 | 19/11 | AT12 — Deploiement namespace at12-edge-ia : ConfigMap Python (serveur kNN QoS), Pod ia-edge sur vm-ran (NodePort 30120), Pod ia-cloud sur vm-cp (NodePort 30121) | Termine | 2 pods Running en 5s ; health edge OK (node:vm-ran-edge), cloud OK (node:vm-cp-cloud) |
+| 58 | 19/11 | AT12 — Benchmark IA depuis VM principale : 20 req Edge + 20 req Cloud, temps inference kNN | Termine | Edge inf moy=0.676ms, Cloud inf moy=0.649ms ; RTT identique ~7ms (meme sous-reseau AWS) |
+| 59 | 19/11 | AT12 — Benchmark UE depuis vm-ran (2 executions) : Edge local vs Cloud distant | Termine | Exec1: Edge RTT 6.15ms vs Cloud 6.65ms (gain 7.5%) ; Exec2: Edge 5.85ms vs Cloud 6.20ms (gain 5.6%) |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -91,8 +96,8 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT8 | Cloud-native et orchestration | Terminé | Cluster k3s v1.37.2+k3s1 multi-nœuds (vm-cp, vm-ran, vm-upf tous Ready) ; namespace open5gs ; auto-scaling dynamique 1->3->1 réussi | Pods répartis automatiquement sur les 3 nœuds physiques ; pas d'anomalie | AT9 |
 | AT9 | Conteneurisation des fonctions 6G | Terminé | Namespace cnf-6g (Core SBI HTTP, UPF iperf3, client RAN) ; CoreDNS OK ; Ping inter-pods RTT 0,469 ms ; iperf3 7,90 Gbits/s ; RAM 1-11 Mo par Pod | Aucun incident ; performances optimales sous Flannel CNI | AT10 |
 | AT10 | Edge, Fog, Cloud | Terminé | Déploiement K8s NodePort (Edge 30081, Fog 30082, Cloud 30083) ; latences et temps de traitement mesurés depuis UE ; Edge ~0,65 ms vs Fog/Cloud ~0,87-1,14 ms | Gain de latence de ~30% validé au niveau Edge pour les applications temps réel | AT11 |
-| AT11 | Orchestration intelligente | Terminé | Boucle d'orchestration Python autonome (5 itérations), détection pic 78% CPU, migration dynamique vers vm-upf, scale-up/down répliques (1->2->1), RTT 1,00-1,49 ms | Aucun incident ; migration à chaud transparente sous K8s | AT12 |
-| AT12 | Edge Intelligence | À commencer | | | |
+| AT11 | Orchestration intelligente | Terminé | Orchestrateur Python autonome (5 itérations, 12s) ; détection surcharge CPU vm-ran (78%) ; Scale UP app-fog 1->2 répliques ; migration workload-app vers vm-upf ; Scale DOWN automatique sur normalisation (< 20%) ; 100% de disponibilité de service | Délai metrics-server 15s : corrigé avec délai de propagation 12s | AT12 |
+| AT12 | Edge Intelligence | Termine | Namespace at12-edge-ia (K8s) ; Pod ia-edge (vm-ran 30120) + ia-cloud (vm-cp 30121) ; modele kNN (600 pts, k=7, 3 classes QoS : eMBB/URLLC/mMTC) ; benchmark 2 executions depuis UE vm-ran : Edge RTT 5.85-6.15ms vs Cloud 6.20-6.65ms, gain 5.6-7.5% | Modele kNN natif Python sans sklearn (Alpine) ; 2 executions mesure | AT13 |
 | AT13 | O-RAN, RIC | À commencer | | | |
 | AT14 | Dataset 6G | À commencer | | | |
 | AT15 | Mobilité et handover | À commencer | | | |
@@ -764,3 +769,39 @@ Coûts à surveiller : instances (environ 0,1 $ par heure et par instance de ce 
 1. **Autonomie et auto-réparation (Zero-Touch Management)** : L'orchestrateur a détecté et résolu la congestion de manière 100% autonome en moins de 15 secondes, sans intervention humaine.
 2. **Migration à chaud sans perte de service** : Le basculement du pod `workload-app` depuis l'Edge vers le Fog s'est effectué de manière transparente grâce au réseau Flannel CNI et au routage K8s (temps de réponse RTT stable à ~1.4 ms).
 3. **Efficacité énergétique et élasticité** : Le mécanisme de Scale DOWN automatique permet de restituer immédiatement les ressources CPU/RAM dès la fin du pic de trafic, respectant les objectifs de sobriété énergétique des réseaux 6G (Green 6G).
+
+
+---
+
+## Étape 55 (18/11) — Réalisation et validation d'AT11 (Orchestration intelligente)
+
+### Architecture Déployée (Namespace `at11-orch`)
+
+| Service | Nœud Initial | NodePort | Rôle |
+|---|---|---|---|
+| `workload-app` | `vm-ran` → migré `vm-upf` | `30090` | Charge de travail 6G (mobile) |
+| `app-edge` | `vm-ran` | `30091` | Niveau Edge |
+| `app-fog` | `vm-upf` (scalé 1→2) | `30092` | Niveau Fog |
+| `app-cloud` | `vm-cp` | `30093` | Niveau Cloud |
+
+### Politique d'Orchestration Intelligente (5 itérations de 12s)
+
+| Itération | CPU vm-ran | CPU vm-upf | CPU vm-cp | Décision Prise |
+|---|---|---|---|---|
+| **T0** | 1% (20m) | 1% (38m) | 3% (66m) | NORMAL — Surveillance passive |
+| **T1** | 0% (14m) | 1% (37m) | 8% (163m) | NORMAL — Surveillance passive |
+| **T2** | **78% (1577m)** ⚠️ | 2% (50m) | 7% (146m) | **RÈGLE 1 : Scale UP app-fog (1→2) + Migration workload-app → vm-upf** |
+| **T3** | 76% (1528m) | 6% (120m) | 7% (146m) | RÈGLE 1 : app-fog déjà à 2 répliques, migration confirmée |
+| **T4** | 2% (44m) | 4% (89m) | 6% (121m) | **RÈGLE 2 : Scale DOWN app-fog (2→1) — charge normalisée** |
+
+### Résultats et Continuité de Service
+
+| Service | RTT Avant | RTT Après Migration | Disponibilité |
+|---|---|---|---|
+| workload-app (NodePort 30090) | 1.17 ms (vm-ran) | 1.49 ms (vm-upf) | **100% — 0 perte** |
+| app-fog (30092) | 0.92 ms | 1.00 ms | **100%** |
+| app-edge (30091) | 1.48 ms | 1.35 ms | **100%** |
+| app-cloud (30093) | 0.86 ms | 0.88 ms | **100%** |
+
+**Conclusion :** Migration dynamique à chaud réussie sans interruption de service. L'orchestrateur Python autonome décharge automatiquement un nœud en surcharge (78% CPU) en 24s de réaction.
+

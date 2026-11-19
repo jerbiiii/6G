@@ -321,3 +321,43 @@ curl -s http://172.31.38.166:30090/health
 📸 **Ce que montre la capture :**
 - `workload-app` s'exécute désormais sur `vm-upf` (Fog), confirmant la migration réussie.
 - Réponse JSON `{"status":"UP","node":"vm-upf"}` prouvant la continuité de service sans interruption.
+
+
+---
+
+### Capture 20 : État des pods AT12 Edge Intelligence (vm-cp)
+**Où :** Sur `vm-cp`.
+```bash
+# Commande à capturer :
+sudo k3s kubectl get pods,svc -n at12-edge-ia -o wide
+```
+📸 **Ce que montre la capture :** Les 2 pods déployés (ia-edge sur vm-ran, ia-cloud sur vm-cp) et les services NodePort (30120 et 30121).
+
+---
+
+### Capture 21 : Health check et prédiction IA depuis UE (vm-ran)
+**Où :** Sur `vm-ran`.
+```bash
+# Commande à capturer :
+curl -s http://127.0.0.1:30120/health
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"latence_ms":2.5,"debit_mbps":80,"pertes_pct":0.05}' \
+  http://127.0.0.1:30120/predict
+```
+📸 **Ce que montre la capture :**
+- Health `{"status":"UP","node":"vm-ran-edge"}` confirmant l'IA opérationnelle à l'Edge
+- Prédiction de classe de service QoS avec temps d'inférence en ms
+
+---
+
+### Capture 22 : Benchmark comparatif Edge vs Cloud depuis UE (vm-ran)
+**Où :** Sur `vm-ran`.
+```bash
+# Commande à capturer (exécuter at12-benchmark-ue.sh et afficher stats) :
+bash /tmp/at12-benchmark-ue.sh 2>&1 | grep -E "(STATS|RTT|Inf|Gain|Edge|Cloud)"
+```
+📸 **Ce que montre la capture :**
+- Edge RTT moyen : 5.85-6.15 ms (inference locale sur vm-ran)
+- Cloud RTT moyen : 6.20-6.65 ms (inference distante sur vm-cp)
+- **Gain latence Edge vs Cloud : 5.6% à 7.5%**
+- Temps d'inférence kNN : ~0.63-0.68 ms (Edge) vs ~0.65-0.70 ms (Cloud)
