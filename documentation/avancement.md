@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT19 : Optimisation des ressources pour la mobilité 6G — prédictif vs réactif latence -78.9%, pic -87.5%, SLA violation 0.49% — étapes 79 à 82)
+**Dernière mise à jour :** 19/11/2026 (AT20 : Digital Twin intelligent du réseau 6G — API REST :8090, simulations What-If, fidélité MAPE=2.21% — étapes 83 à 86)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -103,6 +103,10 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 80 | 19/11 | AT19 — Optimisation mobilité : Conception du contrôleur proactif d'allocation des tranches 6G (pré-réservation de bande passante tc et réallocation anticipée de tranches URLLC/eMBB) | Terminé | Contrôleur d'adaptation prédictif en Python stdlib sans dépendance externe |
 | 81 | 19/11 | AT19 — Optimisation mobilité : Benchmark quantitatif comparatif Réactif vs Prédictif sur 3 runs réels (Réactif: latence moy=84.95ms, pic=171.26ms, perte=3.92%, SLA violation=18.79% ; Prédictif: latence moy=17.92ms, pic=21.49ms, perte=0.07%, SLA violation=0.49%) | Terminé | at19_results.txt sauvegardé sur VM principale ; gains majeurs confirmés 3/3 |
 | 82 | 19/11 | AT19 — Optimisation mobilité : Analyse de continuité de service (gain latence +78.9%, pic +87.5%, conformité SLA < 1%) et finalisation du livrable AT19 | Terminé | AT19-livrable.md rédigé et committé dans le dépôt Git ; commit 53d7d92 |
+| 83 | 19/11 | AT20 — Digital Twin : Conception du modèle d'état répliqué en mémoire (Digital State Engine) miroir de la topologie multi-nœuds 6G (vm-cp, vm-ran, vm-upf, 4 cellules gNB-A/B/C/D, tranches eMBB/URLLC/mMTC) | Terminé | digital_twin_server.py en Python standard library sans dépendance externe |
+| 84 | 19/11 | AT20 — Digital Twin : Déploiement du service API REST (port 8090 en arrière-plan tmux) exposant les endpoints de synchronisation /state, d'expérimentation /simulate et de benchmark /compare | Terminé | Service opérationnel, écoute 0.0.0.0:8090 confirmée par ss -tlnp |
+| 85 | 19/11 | AT20 — Digital Twin : Évaluation de scénarios What-If (surcharge eMBB +250 Mbps générant latence 21.44ms et alerte prescriptive ; panne cellule gNB-B et plan de reroutage vers gNB-A/C en 26.33ms) | Terminé | Simulations validées par requêtes POST curl réelles ; at20_results.txt sauvegardé |
+| 86 | 19/11 | AT20 — Digital Twin : Évaluation quantitative de fidélité numérique vs mesures du réseau physique (eMBB erreur 3.06%, URLLC 0.46%, mMTC 3.13%, MAPE globale = 2.21% < 4.5% seuil cible) et rédaction livrable AT20 | Terminé | AT20-livrable.md rédigé, documentation des commandes curl de test direct ; commit Git |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -126,7 +130,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT17 | NTN | Terminé | Intégration NTN 6G : comparaison rigoureuse Terrestre (RTT 0.05 ms) vs LEO 600 km (RTT 30.60 ms) vs GEO 35 786 km (RTT 488.70 ms) ; 0.0% perte validé sur 3 runs réels ; analyse impact BDP/TCP et mobilité orbitale ; commit 7dff837 | `/home/ubuntu/at17/captures/at17_results.txt` | AT18 |
 | AT18 | Gestion intelligente de la mobilité | Terminé | Modèle prédictif de cellule cible : Accuracy 94.92% (cible > 90% dépassée), horizon T_lead 2.46s, gain proactif signalisation -77% (35ms -> 8ms) ; 3 runs réels ; commit e86d894 | `/home/ubuntu/at18/captures/at18_results.txt` | AT19 |
 | AT19 | Optimisation pour la mobilité | Terminé | Optimisation prédictive des ressources basée IA : latence moyenne 17.92 ms (+78.9% vs 84.95 ms réactif), pic 21.49 ms (+87.5% vs 171.26 ms), pertes 0.07% (vs 3.92%), violation SLA 0.49% (vs 18.79%) ; 3 runs réels ; commit 53d7d92 | `/home/ubuntu/at19/captures/at19_results.txt` | AT20 |
-| AT20 | Digital Twin | À commencer | | | |
+| AT20 | Digital Twin | Terminé | Jumeau Numérique 6G opérationnel (API REST :8090) ; moteur What-If prédictif (surcharge trafic, panne cellule) ; très haute fidélité vs réseau physique (MAPE = 2.21% < 4.5% cible) ; commandes curl de test direct documentées ; commit Git | `/home/ubuntu/at20/captures/at20_results.txt` | AT21 |
 | AT21 | Blockchain | À commencer | | | |
 | AT22 | Quantum ML | À commencer | | | |
 | AT23 | IA générative / LLM | À commencer | | | |

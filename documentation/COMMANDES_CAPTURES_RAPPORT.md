@@ -477,3 +477,19 @@ cat /home/ubuntu/at19/captures/at19_results.txt
 - Élimination des pics de saturation transitoire : latence pic écrasée de **171.26 ms à 21.49 ms** (gain de **+87.5%**).
 - Taux de perte de paquets réduit de 3.92% à quasi zéro (**0.07%**).
 - Conformité stricte aux exigences de SLA : taux de violation de SLA chutant de 18.79% à seulement **0.49%** (cible < 1% respectée).
+
+---
+
+### Capture 33 : Service Digital Twin 6G et expérimentations What-If (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at20/captures/at20_results.txt
+```
+📸 **Ce que montre la capture :**
+- État complet du Jumeau Numérique 6G synchronisé en mémoire (nœuds physiques, 4 cellules radio, 3 tranches de slicing, 45 sessions PDU).
+- Résultats des simulations prédictives What-If :
+  * Surcharge de trafic eMBB (+250 Mbps) : détection de saturation et recommandation prescriptive d'auto-scaling (+150 Mbps).
+  * Panne de cellule gNB-B : calcul du plan de ré-aiguillage automatique vers gNB-A et gNB-C en 26.33 ms sans rupture.
+- Benchmark quantitatif de fidélité numérique : erreur relative de 3.06% (eMBB), 0.46% (URLLC), 3.13% (mMTC) soit une erreur moyenne (MAPE) de **2.21%**, démontrant une très haute fidélité du modèle jumeau par rapport au réseau physique.
+
