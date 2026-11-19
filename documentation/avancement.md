@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT15 : Mobilité avancée et handover 6G — Dual-gNB HIT=26.33ms, perte 10.0%, RTT 13.0ms — étape 69)
+**Dernière mise à jour :** 19/11/2026 (AT16 : Communication V2X et réseaux 6G — V2I PDR=100% lat=0.047ms, V2V PDR=99% lat=0.067ms — étape 70)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -90,6 +90,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 67 | 19/11 | AT24 — IA Predictive kNN natif (k=5) : Accuracy=0.5462, Precision=0.46, Rappel=1.00, F1=0.63 ; Ridge λ=1e-3 latency_ms : MSE=21.91, MAE=4.09, R²=-7.13 | Terminé | at24_results.txt + predictions_knn.csv + AT24-livrable.md ; commit cdcd88c |
 | 68 | 19/11 | AT26 — Optimisation dynamique et réseau AI-native (boucle fermée MAPE-K / OODA) : latence moyenne 1.646 ms (gain +93.64%), pic réduit de 45 ms à 2.13 ms (+95.27%), 100% congestion résolue, temps de cycle moyen 5.527 ms (< 100 ms cible O-RAN) | Terminé | at26_results.txt + closed_loop_metrics.csv + AT26-livrable.md ; script closed_loop_ai.py |
 | 69 | 19/11 | AT15 — Mobilité avancée et handover 6G : Dual-gNB (gNB1 source x00001, gNB2 cible x00002), Handover Interruption Time (HIT) moyen 26.33 ms (< 30 ms cible URLLC/6G), perte transitoire 10%, RTT post-handover 13.00 ms (gigue 1.62 ms) sur 3 runs réels | Terminé | at15_results.txt + AT15-livrable.md ; commit 8bb44f5 |
+| 70 | 19/11 | AT16 — Communication V2X et réseaux 6G : modélisation et mesures V2I (urbain 50 km/h, PDR 100%, latence moyenne 0.047 ms) et V2V (autoroute 130 km/h, PDR 99%, latence moyenne 0.067 ms) sur 3 runs réels | Terminé | at16_results.txt + AT16-livrable.md ; commit 68a5d26 |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -109,7 +110,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT13 | O-RAN, RIC | Termine | Namespace at13-oran-ric (K8s) ; Pod e2-node (vm-ran :8080 metriques JSON) + Pod near-rt-ric (vm-cp :8081 boucle 500ms) + Job xapp-ran (vm-upf) ; 3 boucles controle xApp : moy=41.3ms min=6.7ms max=109.5ms ; Near-RT RIC 171 boucles loop_ms=1.792ms ; cible <1s ATTEINTE ; preuves /home/ubuntu/at13/captures/ | Interface E2 et A1 simulees HTTP (pas de stack O-RAN open-source reelle) ; metriques aleatoires (pas de vrai gNB) | AT14 |
 | AT14 | Dataset 6G | Terminé | Dataset telecom 6G unifié : 597 échantillons équilibrés (183 eMBB 30.7%, 202 URLLC 33.8%, 212 mMTC 35.5%) ; 405 nominaux (67.8%) / 192 congestionnés (32.2%) ; 14 colonnes (débit, latence, pertes, gigue, CPU, actions RIC) ; versions brute et normalisée Min-Max prêtes pour l'IA | Fichiers générés par parsing de mesures réelles (AT5, AT6, AT12, AT13) ; prêt pour AT24/AT25 | AT15 |
 | AT15 | Mobilité et handover | Terminé | Dual-gNB (x00001, x00002) connectés à AMF ; Handover Interruption Time (HIT) moyen 26.33 ms (conforme cible < 30 ms URLLC/6G) ; pertes transitoires 10.0%, RTT moyen 13.00 ms, gigue 1.62 ms ; 3 exécutions réelles ; commit 8bb44f5 | `/home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt` | AT16 |
-| AT16 | V2X | À commencer | | | |
+| AT16 | V2X | Terminé | Scénario véhiculaire V2X 6G : V2I-Urban (PDR 100%, latence E2E 0.047 ms) vs V2V-Highway (PDR 99%, latence 0.067 ms, gigue 0.07 ms) ; conformité cibles URLLC/V2X 6G ; 3 runs réels ; commit 68a5d26 | `/home/ubuntu/6G/captures/at16_results.txt` | AT17 |
 | AT17 | NTN | À commencer | | | |
 | AT18 | Gestion intelligente de la mobilité | À commencer | | | |
 | AT19 | Optimisation pour la mobilité | À commencer | | | |

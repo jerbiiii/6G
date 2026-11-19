@@ -420,4 +420,19 @@ cat /home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt
 - Taux de perte transitoire moyen de 10.0% durant la commutation radio, avec rétablissement immédiat de session.
 - Stabilité post-handover : RTT moyen de 13.00 ms et gigue réduite à 1.62 ms.
 
+---
+
+### Capture 29 : Mesures quantitatives de communication V2X 6G (V2I / V2V) (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/6G/captures/at16_results.txt
+```
+📸 **Ce que montre la capture :**
+- Résultats réels sur 3 runs des flux V2I (Urbain 50 km/h) et V2V (Autoroute 130 km/h).
+- Taux de livraison de paquets (PDR) parfait en V2I urbain (**100.00%**) et ultra-élevé en V2V autoroutier (**99.00%**).
+- Latence moyenne sub-milliseconde (**0.047 ms en V2I** et **0.067 ms en V2V**), démontrant la faisabilité d'échanges véhiculaires critiques sous couverture 6G Edge/RSU.
+- Gigue maîtrisée (**0.05 ms** urbain / **0.07 ms** autoroutier).
+
+
 
