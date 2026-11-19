@@ -82,6 +82,16 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 57 | 19/11 | AT12 — Deploiement namespace at12-edge-ia : ConfigMap Python (serveur kNN QoS), Pod ia-edge sur vm-ran (NodePort 30120), Pod ia-cloud sur vm-cp (NodePort 30121) | Termine | 2 pods Running en 5s ; health edge OK (node:vm-ran-edge), cloud OK (node:vm-cp-cloud) |
 | 58 | 19/11 | AT12 — Benchmark IA depuis VM principale : 20 req Edge + 20 req Cloud, temps inference kNN | Termine | Edge inf moy=0.676ms, Cloud inf moy=0.649ms ; RTT identique ~7ms (meme sous-reseau AWS) |
 | 59 | 19/11 | AT12 — Benchmark UE depuis vm-ran (2 executions) : Edge local vs Cloud distant | Termine | Exec1: Edge RTT 6.15ms vs Cloud 6.65ms (gain 7.5%) ; Exec2: Edge 5.85ms vs Cloud 6.20ms (gain 5.6%) |
+| 60 | 19/11 | AT13 — Verification infra k3s : 3 noeuds Ready (vm-cp control-plane, vm-ran agent, vm-upf agent) | Terminé | v1.37.2+k3s1, containerd 2.3.7-k3s1, all Ready |
+| 61 | 19/11 | AT13 — Namespace at13-oran-ric cree ; ConfigMap e2node-script + Pod e2-node sur vm-ran (python:3.11-alpine, port 8080) ; Service e2-node-svc | Terminé | Pod Running 10.42.1.16 vm-ran ; metriques JSON /metrics OK (lat, throughput, loss) |
+| 62 | 19/11 | AT13 — ConfigMap near-rt-ric-script + Pod near-rt-ric sur vm-cp (port 8081, boucle E2 500ms) | Terminé | Pod Running 10.42.0.25 vm-cp ; 171 boucles executees ; loop_ms=1.792ms (cible Near-RT < 1s ATTEINTE) |
+| 63 | 19/11 | AT13 — ConfigMap xapp-script + Job xapp-ran sur vm-upf : 3 boucles (read E2 -> decide RIC -> act -> verify) | Terminé | Loop1=109.5ms THROTTLE ; Loop2=7.9ms THROTTLE ; Loop3=6.7ms HOLD ; moy=41.3ms min=6.7ms max=109.5ms ; cible <1s ATTEINTE 3/3 |
+| 64 | 19/11 | AT13 — Preuves sauvegardees sur vmcp dans /home/ubuntu/at13/captures/ (pods_status.txt, ric_status.json 17Ko, xapp_results.log) | Terminé | 4 fichiers captures ; ric_status.json 171 decisions enregistrees |
+| 60 | 19/11 | AT13 — Verification infra k3s : 3 noeuds Ready (vm-cp control-plane, vm-ran, vm-upf) | Termine | v1.37.2+k3s1, containerd 2.3.7-k3s1, all Ready |
+| 61 | 19/11 | AT13 — Namespace at13-oran-ric cree ; ConfigMap e2node-script + Pod e2-node sur vm-ran (python:3.11-alpine, port 8080) ; Service e2-node-svc | Termine | Pod Running 10.42.1.16 vm-ran ; metriques JSON /metrics OK (lat, throughput, loss) |
+| 62 | 19/11 | AT13 — ConfigMap near-rt-ric-script + Pod near-rt-ric sur vm-cp (port 8081) ; Service near-rt-ric-svc ; boucle E2 500ms | Termine | Pod Running 10.42.0.25 vm-cp ; 171 boucles de controle executees ; loop_ms=1.792ms (cible Near-RT < 1s ATTEINTE) |
+| 63 | 19/11 | AT13 — ConfigMap xapp-script + Job xapp-ran sur vm-upf : 3 boucles de controle (read E2 -> decide RIC -> act -> verify) | Termine | Loop1=109.5ms THROTTLE ; Loop2=7.9ms THROTTLE ; Loop3=6.7ms HOLD ; moy=41.3ms min=6.7ms max=109.5ms ; cible <1s ATTEINTE 3/3 |
+| 64 | 19/11 | AT13 — Preuves sauvegardees sur vmcp dans /home/ubuntu/at13/captures/ (pods_status.txt, ric_status.json, xapp_results.log, near_rt_ric.log) | Termine | 4 fichiers de capture ; ric_status.json 17Ko (171 decisions enregistrees) |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -98,7 +108,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT10 | Edge, Fog, Cloud | Terminé | Déploiement K8s NodePort (Edge 30081, Fog 30082, Cloud 30083) ; latences et temps de traitement mesurés depuis UE ; Edge ~0,65 ms vs Fog/Cloud ~0,87-1,14 ms | Gain de latence de ~30% validé au niveau Edge pour les applications temps réel | AT11 |
 | AT11 | Orchestration intelligente | Terminé | Orchestrateur Python autonome (5 itérations, 12s) ; détection surcharge CPU vm-ran (78%) ; Scale UP app-fog 1->2 répliques ; migration workload-app vers vm-upf ; Scale DOWN automatique sur normalisation (< 20%) ; 100% de disponibilité de service | Délai metrics-server 15s : corrigé avec délai de propagation 12s | AT12 |
 | AT12 | Edge Intelligence | Termine | Namespace at12-edge-ia (K8s) ; Pod ia-edge (vm-ran 30120) + ia-cloud (vm-cp 30121) ; modele kNN (600 pts, k=7, 3 classes QoS : eMBB/URLLC/mMTC) ; benchmark 2 executions depuis UE vm-ran : Edge RTT 5.85-6.15ms vs Cloud 6.20-6.65ms, gain 5.6-7.5% | Modele kNN natif Python sans sklearn (Alpine) ; 2 executions mesure | AT13 |
-| AT13 | O-RAN, RIC | À commencer | | | |
+| AT13 | O-RAN, RIC | Termine | Namespace at13-oran-ric (K8s) ; Pod e2-node (vm-ran :8080 metriques JSON) + Pod near-rt-ric (vm-cp :8081 boucle 500ms) + Job xapp-ran (vm-upf) ; 3 boucles controle xApp : moy=41.3ms min=6.7ms max=109.5ms ; Near-RT RIC 171 boucles loop_ms=1.792ms ; cible <1s ATTEINTE ; preuves /home/ubuntu/at13/captures/ | Interface E2 et A1 simulees HTTP (pas de stack O-RAN open-source reelle) ; metriques aleatoires (pas de vrai gNB) | AT14 |
 | AT14 | Dataset 6G | À commencer | | | |
 | AT15 | Mobilité et handover | À commencer | | | |
 | AT16 | V2X | À commencer | | | |
