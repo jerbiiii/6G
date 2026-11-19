@@ -1,0 +1,5 @@
+scenario_id,scenario_desc,total_traffic_mbps,pred_latency_ms,pred_throughput_mbps,pred_loss_pct,pred_cpu_upf_pct,embb_lat_ms,urllc_lat_ms,mmtc_lat_ms,sla_violated,sla_details,data_origin
+S1_eMBB_Burst,Explosion de trafic eMBB (+250 Mbps),775.0,1.383,775.0,0.3,69.2,1.383,0.581,3.458,False,NONE,PREDICTED
+S2_URLLC_Critical,Charge critique URLLC (80 Mbps),490.0,2.656,490.0,0.0,49.3,2.656,1.116,6.64,False,NONE,PREDICTED
+S3_gNB_Failure,Panne du gNB-B et ré-aiguillage des UE,325.0,6.035,325.0,0.0,37.8,6.035,2.535,15.088,True,URLLC_SLA_VIOLATED,PREDICTED
+S4_UPF_CPU_Limit,Réduction du CPU alloué à l'UPF (35%),375.0,97.696,350.0,6.67,100.0,97.696,41.032,244.24,True,eMBB_SLA_VIOLATED;URLLC_SLA_VIOLATED;mMTC_SLA_VIOLATED,PREDICTED

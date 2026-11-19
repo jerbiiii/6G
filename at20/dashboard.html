@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6G Intelligent Digital Twin - Testbed Monitor</title>
+<style>
+  :root {
+    --bg-dark: #0a0e17;
+    --card-bg: #111827;
+    --card-border: #1f293d;
+    --accent-cyan: #00e5ff;
+    --accent-green: #00e676;
+    --accent-amber: #ffb300;
+    --accent-red: #ff1744;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --font-mono: 'Consolas', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 16px;
+    line-height: 1.4;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .title-group h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #00e5ff, #3d84ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .title-group p { font-size: 0.85rem; color: var(--text-secondary); }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 230, 118, 0.12);
+    border: 1px solid var(--accent-green);
+    color: var(--accent-green);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+  }
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+  .btn {
+    background: #1e293b;
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .btn:hover { background: var(--accent-cyan); color: #000; }
+  .tag {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+    vertical-align: middle;
+  }
+  .tag-real { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+  .tag-pred { background: #1e3a8a; color: #93c5fd; border: 1px solid #2563eb; }
+  .tag-gen  { background: #4c1d95; color: #c4b5fd; border: 1px solid #7c3aed; }
+
+  /* Grid Layout */
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 14px;
+    position: relative;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #1f2937;
+    padding-bottom: 6px;
+  }
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Topologie Canvas */
+  .col-topologie { grid-column: span 7; min-height: 380px; }
+  #topoCanvas {
+    width: 100%;
+    height: 320px;
+    background: #0d131f;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+    display: block;
+  }
+
+  /* Jauges CPU & Gauges */
+  .col-gauges { grid-column: span 5; }
+  .gauge-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .gauge-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .gauge-val { font-size: 1.4rem; font-weight: 700; color: var(--accent-cyan); font-family: var(--font-mono); }
+  .gauge-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
+  .bar-container { background: #334155; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .bar-fill { height: 100%; width: 0%; transition: width 0.4s ease; }
+  
+  /* KPIs Live */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .kpi-item {
+    background: #0f172a;
+    border-radius: 6px;
+    padding: 8px;
+    border-left: 3px solid var(--accent-cyan);
+  }
+  .kpi-title { font-size: 0.7rem; color: var(--text-secondary); }
+  .kpi-num { font-size: 1.1rem; font-weight: 700; font-family: var(--font-mono); margin-top: 2px; }
+
+  /* Charts */
+  .col-charts { grid-column: span 6; }
+  #chartCanvas {
+    width: 100%;
+    height: 220px;
+    background: #0d131f;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+    display: block;
+  }
+
+  /* What-If Simulation Panel */
+  .col-whatif { grid-column: span 6; }
+  .slider-group { margin-bottom: 12px; }
+  .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+  .slider-header span:last-child { font-weight: bold; font-family: var(--font-mono); color: var(--accent-cyan); }
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #1e293b;
+    outline: none;
+    accent-color: var(--accent-cyan);
+  }
+  .preset-btns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .preset-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    padding: 6px 4px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .preset-btn:hover { border-color: var(--accent-cyan); background: #0f172a; }
+  .whatif-preview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: #0b1120;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+  }
+  .preview-col { text-align: center; }
+  .preview-col .p-lbl { font-size: 0.68rem; color: var(--text-secondary); }
+  .preview-col .p-val { font-size: 1.05rem; font-weight: 700; font-family: var(--font-mono); margin: 3px 0; }
+  .preview-col .p-delta { font-size: 0.75rem; font-weight: 600; }
+
+  /* Comparison Table */
+  .col-table { grid-column: span 12; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid #1f2937; }
+  th { background: #0f172a; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+  tr:hover { background: rgba(255,255,255,0.02); }
+  .badge-diff {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+  .diff-good { background: #064e3b; color: #34d399; }
+  .diff-warn { background: #78350f; color: #fbbf24; }
+  .diff-bad  { background: #7f1d1d; color: #f87171; }
+  .sla-ok    { color: #34d399; font-weight: bold; }
+  .sla-fail  { color: #f87171; font-weight: bold; animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <h1>6G Digital Twin Intelligent & Real-Time Testbed</h1>
+    <p>Architecture Ouverte Open5GS + UERANSIM multi-VM (AWS EC2) | Modèle Hybride M/M/1 + Ridge</p>
+  </div>
+  <div class="header-actions">
+    <div class="sync-badge">
+      <div class="sync-dot"></div>
+      <span id="syncText">SYNCHRONIZED (Connexion...)</span>
+    </div>
+    <a href="/api/export/csv" class="btn" download>📥 Export metrics.csv</a>
+    <a href="/api/export/json" class="btn" download>📥 Export JSON</a>
+  </div>
+</header>
+
+<div class="grid-container">
+
+  <!-- TOPOLOGIE ANIMÉE -->
+  <div class="card col-topologie">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🌐 Topologie Physique & Liens Réseau</span>
+        <span class="tag tag-real">Réel</span>
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-secondary);">
+        Particules : <span style="color:#00e676;">Vert &lt;400M</span> | <span style="color:#ffb300;">Orange 400-700M</span> | <span style="color:#ff1744;">Rouge &gt;700M</span>
+      </div>
+    </div>
+    <canvas id="topoCanvas" width="700" height="320"></canvas>
+  </div>
+
+  <!-- RESSOURCES & GAUGES -->
+  <div class="card col-gauges">
+    <div class="card-header">
+      <div class="card-title">
+        <span>⚡ Ressources Compute & QoS</span>
+        <span class="tag tag-real">Réel</span>
+      </div>
+      <span style="font-size:0.75rem; color:var(--text-secondary);" id="nodeCount">3 Nodes k3s Ready</span>
+    </div>
+    <div class="gauge-grid">
+      <div class="gauge-box">
+        <div class="gauge-val" id="cpuCP">3%</div>
+        <div class="gauge-label">vm-cp (AMF/SMF)</div>
+        <div class="bar-container"><div class="bar-fill" id="barCP" style="background:var(--accent-cyan);"></div></div>
+      </div>
+      <div class="gauge-box">
+        <div class="gauge-val" id="cpuRAN">1%</div>
+        <div class="gauge-label">vm-ran (gNB/UE)</div>
+        <div class="bar-container"><div class="bar-fill" id="barRAN" style="background:#3b82f6;"></div></div>
+      </div>
+      <div class="gauge-box">
+        <div class="gauge-val" id="cpuUPF">1%</div>
+        <div class="gauge-label">vm-upf (UPF)</div>
+        <div class="bar-container"><div class="bar-fill" id="barUPF" style="background:#a855f7;"></div></div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-item">
+        <div class="kpi-title">Débit Total (uesimtun0)</div>
+        <div class="kpi-num" id="kpiTh">0.0 Mbps</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-title">Latence RTT (UPF)</div>
+        <div class="kpi-num" id="kpiLat">0.0 ms</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-title">Gigue Radio</div>
+        <div class="kpi-num" id="kpiJitter">0.0 ms</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-title">Pertes Paquets</div>
+        <div class="kpi-num" id="kpiLoss">0.0 %</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE CHART SLICES -->
+  <div class="card col-charts">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📈 Télémétrie Temps Réel par Tranche</span>
+        <span class="tag tag-real">Réel</span>
+      </div>
+      <div style="font-size:0.75rem;">
+        <span style="color:#00e5ff;">■ eMBB (Mesuré)</span> &nbsp;
+        <span style="color:#00e676;">■ URLLC (Déduit)</span> &nbsp;
+        <span style="color:#a855f7;">■ mMTC (Déduit)</span>
+      </div>
+    </div>
+    <canvas id="chartCanvas" width="550" height="220"></canvas>
+  </div>
+
+  <!-- PANNEAU WHAT-IF INTERACTIF -->
+  <div class="card col-whatif">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🔮 Simulateur What-If Digital Twin</span>
+        <span class="tag tag-pred">Prédit</span>
+      </div>
+      <span id="slaBadge" class="sla-ok">SLA RESPECTÉ</span>
+    </div>
+
+    <div class="preset-btns">
+      <button class="preset-btn" onclick="applyPreset('s1')">S1: eMBB +250M</button>
+      <button class="preset-btn" onclick="applyPreset('s2')">S2: URLLC 80M</button>
+      <button class="preset-btn" onclick="toggleGnBFailure()">S3: Panne gNB-B</button>
+      <button class="preset-btn" onclick="applyPreset('s4')">S4: CPU UPF 35%</button>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span>Trafic Total Agrégé</span>
+        <span id="lblTraffic">500 Mbps</span>
+      </div>
+      <input type="range" id="rngTraffic" min="50" max="1200" step="10" value="500" oninput="onWhatIfChange()">
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span>Nombre d'UE Connectés</span>
+        <span id="lblUE">1 UE</span>
+      </div>
+      <input type="range" id="rngUE" min="1" max="25" step="1" value="1" oninput="onWhatIfChange()">
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span>Quota CPU Alloué à l'UPF</span>
+        <span id="lblCPU">100 %</span>
+      </div>
+      <input type="range" id="rngCPU" min="20" max="100" step="5" value="100" oninput="onWhatIfChange()">
+    </div>
+
+    <div class="whatif-preview">
+      <div class="preview-col">
+        <div class="p-lbl">Latence Prévue</div>
+        <div class="p-val" id="predLat" style="color:var(--accent-cyan);">1.2 ms</div>
+        <div class="p-delta" id="deltaLat">→ nominal</div>
+      </div>
+      <div class="preview-col">
+        <div class="p-lbl">Débit Prévu</div>
+        <div class="p-val" id="predTh" style="color:var(--accent-green);">500 Mbps</div>
+        <div class="p-delta" id="deltaTh">→ nominal</div>
+      </div>
+      <div class="preview-col">
+        <div class="p-lbl">Pertes Estimées</div>
+        <div class="p-val" id="predLoss" style="color:#fbbf24;">0.0 %</div>
+        <div class="p-delta" id="deltaLoss">0%</div>
+      </div>
+      <div class="preview-col">
+        <div class="p-lbl">CPU UPF Prévu</div>
+        <div class="p-val" id="predCPU" style="color:#c084fc;">45.0 %</div>
+        <div class="p-delta" id="deltaCPU">nominal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLEAU PRÉDIT VS RÉEL (MAPE & VALIDATION) -->
+  <div class="card col-table">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🎯 Validation Physique des Scénarios : Prédit vs Mesuré Réel</span>
+        <span class="tag tag-real">Mesuré</span>
+        <span class="tag tag-pred">Prédit</span>
+      </div>
+      <div id="globalMapeBadge" style="font-size:0.8rem; font-family:var(--font-mono); color:var(--accent-cyan);">
+        MAPE Latence: 77.6% | MAPE Débit: 5.4%
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Scénario</th>
+          <th>Description</th>
+          <th>Latence (Prédit / Réel)</th>
+          <th>Écart Lat. (%)</th>
+          <th>Débit (Prédit / Réel)</th>
+          <th>Écart Débit (%)</th>
+          <th>CPU UPF (Prédit / Réel)</th>
+          <th>Pertes (Prédit / Réel)</th>
+          <th>SLA Statut</th>
+        </tr>
+      </thead>
+      <tbody id="compTableBody">
+        <tr><td colspan="9" style="text-align:center; color:var(--text-secondary);">Chargement des résultats de comparaison...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// État global
+let realHistory = [];
+let lastRealMetric = null;
+let gnbBDown = false;
+let currentWhatIf = { traffic: 500, ue: 1, cpu: 100, gnb: "ALL_OK" };
+
+// Nœuds physiques réels et coordonnées pour topologie animée
+const topoNodes = {
+  cp:  { name: "vm-cp",  ip: "172.31.47.81",  role: "Control Plane", x: 140, y: 80,  color: "#00e5ff" },
+  ran: { name: "vm-ran", ip: "172.31.34.222", role: "RAN (gNB)",     x: 140, y: 240, color: "#3b82f6" },
+  upf: { name: "vm-upf", ip: "172.31.38.166", role: "User Plane",    x: 480, y: 160, color: "#a855f7" },
+  gnbB:{ name: "gNB-B",  ip: "Cell-2",        role: "Cellule 2",     x: 280, y: 270, color: "#38bdf8" },
+  ue1: { name: "UE-01",  ip: "10.45.0.3",     role: "eMBB UE",       x: 60,  y: 280, color: "#34d399" },
+  ue2: { name: "UE-02",  ip: "10.45.0.4",     role: "URLLC UE",      x: 60,  y: 200, color: "#fbbf24" }
+};
+
+// Particules animées circulant sur les liens réseau
+let particles = [];
+for (let i = 0; i < 35; i++) {
+  particles.push({
+    from: "ran", to: "upf",
+    progress: Math.random(),
+    speed: 0.005 + Math.random() * 0.008
+  });
+}
+for (let i = 0; i < 15; i++) {
+  particles.push({
+    from: "cp", to: "ran",
+    progress: Math.random(),
+    speed: 0.003 + Math.random() * 0.005
+  });
+}
+
+function initTopo() {
+  const canvas = document.getElementById("topoCanvas");
+  const ctx = canvas.getContext("2d");
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Liens physiques N2, N3, N4
+    const links = [
+      { from: topoNodes.ran, to: topoNodes.upf, label: "N3 (GTP-U/UDP 2152)", flow: true },
+      { from: topoNodes.cp,  to: topoNodes.ran, label: "N2 (NG-C/SCTP 38412)", flow: false },
+      { from: topoNodes.cp,  to: topoNodes.upf, label: "N4 (PFCP/UDP 8805)",   flow: false },
+      { from: topoNodes.ue1, to: topoNodes.ran, label: "NR-Uu (Radio)",        flow: true },
+      { from: topoNodes.ue2, to: gnbBDown ? topoNodes.ran : topoNodes.gnbB, label: "NR-Uu", flow: true }
+    ];
+
+    // Tracé des liens
+    links.forEach(l => {
+      ctx.beginPath();
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 3;
+      ctx.moveTo(l.from.x, l.from.y);
+      ctx.lineTo(l.to.x, l.to.y);
+      ctx.stroke();
+
+      // Texte lien
+      const mx = (l.from.x + l.to.x) / 2;
+      const my = (l.from.y + l.to.y) / 2 - 6;
+      ctx.fillStyle = "#64748b";
+      ctx.font = "9px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
+      ctx.fillText(l.label, mx - 20, my);
+    });
+
+    // Particules de flux
+    const th = lastRealMetric ? parseFloat(lastRealMetric.throughput_mbps) : 500;
+    let pColor = "#00e676";
+    let speedMult = 1.0;
+    if (th > 700) { pColor = "#ff1744"; speedMult = 2.0; }
+    else if (th > 400) { pColor = "#ffb300"; speedMult = 1.4; }
+
+    particles.forEach(p => {
+      p.progress += p.speed * speedMult;
+      if (p.progress > 1) p.progress = 0;
+
+      const fNode = topoNodes[p.from];
+      const tNode = topoNodes[p.to];
+      const px = fNode.x + (tNode.x - fNode.x) * p.progress;
+      const py = fNode.y + (tNode.y - fNode.y) * p.progress;
+
+      ctx.beginPath();
+      ctx.fillStyle = pColor;
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Dessin des nœuds
+    Object.keys(topoNodes).forEach(k => {
+      const n = topoNodes[k];
+      const isFailed = (k === "gnbB" && gnbBDown);
+
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 18, 0, Math.PI * 2);
+      ctx.fillStyle = isFailed ? "#7f1d1d" : "#0f172a";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = isFailed ? "#ef4444" : n.color;
+      ctx.stroke();
+
+      // Label Nœud
+      ctx.fillStyle = isFailed ? "#ef4444" : "#f1f5f9";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(isFailed ? n.name + " (DOWN)" : n.name, n.x, n.y + 32);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "9px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
+      ctx.fillText(n.ip, n.x, n.y + 44);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+// Visualisation des graphes Canvas temps réel
+function drawChart() {
+  const canvas = document.getElementById("chartCanvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (realHistory.length < 2) return;
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const padding = 30;
+
+  // Axes
+  ctx.strokeStyle = "#1e293b";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, h - padding);
+  ctx.lineTo(w - 10, h - padding);
+  ctx.stroke();
+
+  // Échelle latence (0 à 10 ms nominal)
+  const maxLat = 8.0;
+  const stepX = (w - padding - 20) / Math.max(realHistory.length - 1, 1);
+
+  function drawSeries(key, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    realHistory.forEach((pt, idx) => {
+      const val = parseFloat(pt[key]) || 1.0;
+      const x = padding + idx * stepX;
+      const y = (h - padding) - (Math.min(val, maxLat) / maxLat) * (h - 2 * padding);
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  drawSeries("embb_latency_ms", "#00e5ff");
+  drawSeries("urllc_latency_ms", "#00e676");
+  drawSeries("mmtc_latency_ms", "#a855f7");
+
+  // Légende axe Y
+  ctx.fillStyle = "#64748b";
+  ctx.font = "9px monospace";
+  ctx.textAlign = "right";
+  ctx.fillText("8 ms", padding - 4, padding + 10);
+  ctx.fillText("0 ms", padding - 4, h - padding);
+}
+
+// Récupération périodique des métriques
+async function fetchMetrics() {
+  try {
+    const res = await fetch("/api/metrics");
+    const data = await res.json();
+    if (data.latest) {
+      lastRealMetric = data.latest;
+      realHistory = data.history || [];
+
+      // Maj Sync Badge
+      document.getElementById("syncText").innerText = "SYNCHRONIZED (" + (data.iso_time || "LIVE") + ")";
+      
+      // Maj KPIs
+      document.getElementById("kpiTh").innerText = parseFloat(data.latest.throughput_mbps).toFixed(1) + " Mbps";
+      document.getElementById("kpiLat").innerText = parseFloat(data.latest.latency_ms).toFixed(2) + " ms";
+      document.getElementById("kpiJitter").innerText = parseFloat(data.latest.jitter_ms).toFixed(3) + " ms";
+      document.getElementById("kpiLoss").innerText = parseFloat(data.latest.loss_pct).toFixed(1) + " %";
+
+      // Maj Gauges CPU
+      const cpCPU = data.latest.vmcp_cpu_pct || 3;
+      const ranCPU = data.latest.vmran_cpu_pct || 1;
+      const upfCPU = data.latest.vmupf_cpu_pct || 1;
+
+      document.getElementById("cpuCP").innerText = cpCPU + "%";
+      document.getElementById("barCP").style.width = Math.min(cpCPU, 100) + "%";
+
+      document.getElementById("cpuRAN").innerText = ranCPU + "%";
+      document.getElementById("barRAN").style.width = Math.min(ranCPU, 100) + "%";
+
+      document.getElementById("cpuUPF").innerText = upfCPU + "%";
+      document.getElementById("barUPF").style.width = Math.min(upfCPU, 100) + "%";
+
+      drawChart();
+    }
+  } catch (e) {
+    document.getElementById("syncText").innerText = "RECONNECTING...";
+  }
+}
+
+// Récupération de la comparaison réelle
+async function fetchComparison() {
+  try {
+    const res = await fetch("/api/comparison");
+    const data = await res.json();
+    if (data.scenarios && data.scenarios.length > 0) {
+      const tbody = document.getElementById("compTableBody");
+      tbody.innerHTML = "";
+
+      data.scenarios.forEach(s => {
+        const tr = document.createElement("tr");
+
+        const mapeLat = parseFloat(s.mape_latency_pct);
+        const mapeTh = parseFloat(s.mape_throughput_pct);
+
+        const badgeLatClass = mapeLat < 15 ? "diff-good" : (mapeLat < 50 ? "diff-warn" : "diff-bad");
+        const badgeThClass = mapeTh < 15 ? "diff-good" : (mapeTh < 30 ? "diff-warn" : "diff-bad");
+        const slaClass = s.sla_violated_pred ? "sla-fail" : "sla-ok";
+        const slaText = s.sla_violated_pred ? "VIOLATION" : "CONFORME";
+
+        tr.innerHTML = `
+          <td><strong>${s.scenario_id}</strong></td>
+          <td style="color:#94a3b8;">${s.scenario_desc}</td>
+          <td>${s.pred_latency_ms} ms / <span style="color:#38bdf8;">${s.meas_latency_ms} ms</span></td>
+          <td><span class="badge-diff ${badgeLatClass}">${mapeLat}%</span></td>
+          <td>${s.pred_throughput_mbps} M / <span style="color:#38bdf8;">${s.meas_throughput_mbps} M</span></td>
+          <td><span class="badge-diff ${badgeThClass}">${mapeTh}%</span></td>
+          <td>${s.pred_cpu_pct}% / ${s.meas_cpu_pct}%</td>
+          <td>${s.pred_loss_pct}% / ${s.meas_loss_pct}%</td>
+          <td><span class="${slaClass}">${slaText}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (data.global_mape) {
+        document.getElementById("globalMapeBadge").innerText = 
+          `MAPE Global : Latence ${data.global_mape.latency_pct}% | Débit ${data.global_mape.throughput_pct}%`;
+      }
+    }
+  } catch (e) {
+    console.error("Erreur comparaison:", e);
+  }
+}
+
+// What-If interactif
+async function onWhatIfChange() {
+  const traffic = document.getElementById("rngTraffic").value;
+  const ue = document.getElementById("rngUE").value;
+  const cpu = document.getElementById("rngCPU").value;
+
+  document.getElementById("lblTraffic").innerText = traffic + " Mbps";
+  document.getElementById("lblUE").innerText = ue + " UE" + (ue > 1 ? "s" : "");
+  document.getElementById("lblCPU").innerText = cpu + " %";
+
+  currentWhatIf = { traffic, ue, cpu, gnb: gnbBDown ? "GNB_B_DOWN" : "ALL_OK" };
+
+  try {
+    const res = await fetch(`/api/predict?traffic=${traffic}&ue=${ue}&cpu=${cpu}&gnb=${currentWhatIf.gnb}`);
+    const pred = await res.json();
+
+    document.getElementById("predLat").innerText = pred.pred_latency_ms + " ms";
+    document.getElementById("predTh").innerText = pred.pred_throughput_mbps + " Mbps";
+    document.getElementById("predLoss").innerText = pred.pred_loss_pct + " %";
+    document.getElementById("predCPU").innerText = pred.pred_cpu_upf_pct + " %";
+
+    const slaB = document.getElementById("slaBadge");
+    if (pred.sla_violated) {
+      slaB.className = "sla-fail";
+      slaB.innerText = "ALERTE: " + pred.sla_details;
+    } else {
+      slaB.className = "sla-ok";
+      slaB.innerText = "SLA RESPECTÉ";
+    }
+
+    // Deltas par rapport au réel nominal
+    if (lastRealMetric) {
+      const dLat = (pred.pred_latency_ms - parseFloat(lastRealMetric.latency_ms)).toFixed(2);
+      document.getElementById("deltaLat").innerText = (dLat >= 0 ? "+" : "") + dLat + " ms";
+      document.getElementById("deltaLat").style.color = dLat > 3 ? "var(--accent-red)" : "var(--accent-green)";
+    }
+  } catch (e) {
+    console.error("Erreur predict:", e);
+  }
+}
+
+function applyPreset(p) {
+  if (p === 's1') {
+    document.getElementById("rngTraffic").value = 750;
+    document.getElementById("rngUE").value = 5;
+    document.getElementById("rngCPU").value = 100;
+  } else if (p === 's2') {
+    document.getElementById("rngTraffic").value = 490;
+    document.getElementById("rngUE").value = 10;
+    document.getElementById("rngCPU").value = 100;
+  } else if (p === 's4') {
+    document.getElementById("rngTraffic").value = 350;
+    document.getElementById("rngUE").value = 4;
+    document.getElementById("rngCPU").value = 35;
+  }
+  onWhatIfChange();
+}
+
+function toggleGnBFailure() {
+  gnbBDown = !gnbBDown;
+  onWhatIfChange();
+}
+
+// Initialisation
+window.onload = () => {
+  initTopo();
+  fetchMetrics();
+  fetchComparison();
+  onWhatIfChange();
+  setInterval(fetchMetrics, 2000);
+};
+</script>
+</body>
+</html>
