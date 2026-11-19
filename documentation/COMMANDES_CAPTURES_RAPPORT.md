@@ -361,3 +361,31 @@ bash /tmp/at12-benchmark-ue.sh 2>&1 | grep -E "(STATS|RTT|Inf|Gain|Edge|Cloud)"
 - Cloud RTT moyen : 6.20-6.65 ms (inference distante sur vm-cp)
 - **Gain latence Edge vs Cloud : 5.6% à 7.5%**
 - Temps d'inférence kNN : ~0.63-0.68 ms (Edge) vs ~0.65-0.70 ms (Cloud)
+
+
+---
+
+### Capture 23 : Statistiques descriptives du Dataset 6G Telecom (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at14/captures/dataset_summary.txt
+```
+📸 **Ce que montre la capture :**
+- Volume total : **597 échantillons** consolidés à partir des mesures AT5, AT6, AT12 et AT13.
+- Répartition par tranche : **eMBB** (30.7%), **URLLC** (33.8%), **mMTC** (35.5%).
+- Équilibre des classes de congestion : 67.8% nominal vs 32.2% congestionné.
+- Statistiques descriptives des variables (débit, latence, gigue, perte, CPU).
+
+---
+
+### Capture 24 : Aperçu du Dataset 6G brut et normalisé (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+head -n 6 /home/ubuntu/at14/dataset_6g_telecom.csv
+head -n 6 /home/ubuntu/at14/dataset_6g_normalized.csv
+```
+📸 **Ce que montre la capture :**
+- Les 14 colonnes tabulaires (`sample_id`, `source`, `slice_type`, `throughput_mbps`, `latency_ms`, `loss_pct`, `jitter_ms`, `cpu_usage_pct`, `qos_limit_mbps`, `ric_action`, `is_congested`).
+- La version normalisée Min-Max [0, 1] prête pour l'ingestion par les modèles de machine learning des ateliers AT24 (prédiction) et AT25 (détection d'anomalies).
