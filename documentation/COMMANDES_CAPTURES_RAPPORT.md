@@ -434,5 +434,21 @@ cat /home/ubuntu/6G/captures/at16_results.txt
 - Latence moyenne sub-milliseconde (**0.047 ms en V2I** et **0.067 ms en V2V**), démontrant la faisabilité d'échanges véhiculaires critiques sous couverture 6G Edge/RSU.
 - Gigue maîtrisée (**0.05 ms** urbain / **0.07 ms** autoroutier).
 
+---
+
+### Capture 30 : Benchmark comparatif NTN Réseaux Non-Terrestres (Terrestre vs LEO vs GEO) (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at17/captures/at17_results.txt
+```
+📸 **Ce que montre la capture :**
+- Résultats mesurés sur 3 runs réels pour chaque profil d'orbite :
+  * **Terrestre (T-6G)** : RTT sub-milliseconde moyen de **0.05 ms** (fibre/local).
+  * **LEO (Low Earth Orbit ~600 km)** : RTT moyen de **30.60 ms** (délai de vol aller-retour spatial réaliste, adapté aux flux interactifs et à la couverture 3D globale).
+  * **GEO (Geostationary ~35 786 km)** : RTT moyen de **488.70 ms** (propagation longue distance, adapté à la diffusion broadcast/multicast et au backhaul).
+- Taux de perte de paquets de 0.0% pour tous les profils sous dimensionnement adéquat.
+
+
 
 

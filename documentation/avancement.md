@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT16 : Communication V2X et réseaux 6G — V2I PDR=100% lat=0.047ms, V2V PDR=99% lat=0.067ms — étape 70)
+**Dernière mise à jour :** 19/11/2026 (AT17 : NTN Réseaux non terrestres — Terrestre vs LEO RTT=30.6ms vs GEO RTT=488.7ms — étapes 71 à 74)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -91,6 +91,10 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 68 | 19/11 | AT26 — Optimisation dynamique et réseau AI-native (boucle fermée MAPE-K / OODA) : latence moyenne 1.646 ms (gain +93.64%), pic réduit de 45 ms à 2.13 ms (+95.27%), 100% congestion résolue, temps de cycle moyen 5.527 ms (< 100 ms cible O-RAN) | Terminé | at26_results.txt + closed_loop_metrics.csv + AT26-livrable.md ; script closed_loop_ai.py |
 | 69 | 19/11 | AT15 — Mobilité avancée et handover 6G : Dual-gNB (gNB1 source x00001, gNB2 cible x00002), Handover Interruption Time (HIT) moyen 26.33 ms (< 30 ms cible URLLC/6G), perte transitoire 10%, RTT post-handover 13.00 ms (gigue 1.62 ms) sur 3 runs réels | Terminé | at15_results.txt + AT15-livrable.md ; commit 8bb44f5 |
 | 70 | 19/11 | AT16 — Communication V2X et réseaux 6G : modélisation et mesures V2I (urbain 50 km/h, PDR 100%, latence moyenne 0.047 ms) et V2V (autoroute 130 km/h, PDR 99%, latence moyenne 0.067 ms) sur 3 runs réels | Terminé | at16_results.txt + AT16-livrable.md ; commit 68a5d26 |
+| 71 | 19/11 | AT17 — NTN : Modélisation de l'architecture 3D Terre-Air-Espace 6G (segments spatiaux LEO ~600 km et GEO ~35 786 km, station passerelle Gateway et Cœur Open5GS) | Terminé | Architecture documentée, topologies orbitales et bilans de liaison validés |
+| 72 | 19/11 | AT17 — NTN : Émulation du canal de propagation spatial (paramétrage des délais de vol RTT, de la gigue Doppler orbitale et du Bandwidth-Delay Product BDP) | Terminé | Profils tc netem calibrés : Terrestre (délai 0ms), LEO (délai 15ms gigue 2ms), GEO (délai 250ms gigue 10ms) |
+| 73 | 19/11 | AT17 — NTN : Benchmark quantitatif comparatif Terrestre vs LEO vs GEO sur 3 runs réels (RTT moyen : Terrestre=0.05 ms, LEO=30.60 ms, GEO=488.70 ms ; 0.0% perte de paquets) | Terminé | at17_results.txt sauvegardé sur VM principale ; reproductibilité confirmée 3/3 |
+| 74 | 19/11 | AT17 — NTN : Analyse d'impact des réseaux non terrestres sur les protocoles 6G (dimensionnement TCP Window Scaling, handovers LEO inter-satellites fréquents, broadcast GEO) et rédaction livrable AT17 | Terminé | AT17-livrable.md rédigé et committé dans le dépôt Git ; commit 7dff837 |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -111,7 +115,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT14 | Dataset 6G | Terminé | Dataset telecom 6G unifié : 597 échantillons équilibrés (183 eMBB 30.7%, 202 URLLC 33.8%, 212 mMTC 35.5%) ; 405 nominaux (67.8%) / 192 congestionnés (32.2%) ; 14 colonnes (débit, latence, pertes, gigue, CPU, actions RIC) ; versions brute et normalisée Min-Max prêtes pour l'IA | Fichiers générés par parsing de mesures réelles (AT5, AT6, AT12, AT13) ; prêt pour AT24/AT25 | AT15 |
 | AT15 | Mobilité et handover | Terminé | Dual-gNB (x00001, x00002) connectés à AMF ; Handover Interruption Time (HIT) moyen 26.33 ms (conforme cible < 30 ms URLLC/6G) ; pertes transitoires 10.0%, RTT moyen 13.00 ms, gigue 1.62 ms ; 3 exécutions réelles ; commit 8bb44f5 | `/home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt` | AT16 |
 | AT16 | V2X | Terminé | Scénario véhiculaire V2X 6G : V2I-Urban (PDR 100%, latence E2E 0.047 ms) vs V2V-Highway (PDR 99%, latence 0.067 ms, gigue 0.07 ms) ; conformité cibles URLLC/V2X 6G ; 3 runs réels ; commit 68a5d26 | `/home/ubuntu/6G/captures/at16_results.txt` | AT17 |
-| AT17 | NTN | À commencer | | | |
+| AT17 | NTN | Terminé | Intégration NTN 6G : comparaison rigoureuse Terrestre (RTT 0.05 ms) vs LEO 600 km (RTT 30.60 ms) vs GEO 35 786 km (RTT 488.70 ms) ; 0.0% perte validé sur 3 runs réels ; analyse impact BDP/TCP et mobilité orbitale ; commit 7dff837 | `/home/ubuntu/at17/captures/at17_results.txt` | AT18 |
 | AT18 | Gestion intelligente de la mobilité | À commencer | | | |
 | AT19 | Optimisation pour la mobilité | À commencer | | | |
 | AT20 | Digital Twin | À commencer | | | |
