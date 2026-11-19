@@ -389,3 +389,19 @@ head -n 6 /home/ubuntu/at14/dataset_6g_normalized.csv
 📸 **Ce que montre la capture :**
 - Les 14 colonnes tabulaires (`sample_id`, `source`, `slice_type`, `throughput_mbps`, `latency_ms`, `loss_pct`, `jitter_ms`, `cpu_usage_pct`, `qos_limit_mbps`, `ric_action`, `is_congested`).
 - La version normalisée Min-Max [0, 1] prête pour l'ingestion par les modèles de machine learning des ateliers AT24 (prédiction) et AT25 (détection d'anomalies).
+
+---
+
+### Capture 25 : Exécution de la boucle fermée AI-native et synthèse comparative Statique vs AI (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at26/captures/at26_results.txt
+```
+📸 **Ce que montre la capture :**
+- Comparaison quantitative des 15 cycles : Baseline Statique (50 Mbps figé) vs Boucle Dynamique Fermée AI-Native (MAPE-K / OODA).
+- Réduction spectaculaire de la latence moyenne de 25.868 ms à 1.646 ms (+93.64% d'amélioration) et du pic de 45.0 ms à 2.13 ms (+95.27%).
+- Taux de congestion évitée/résolue de 100% (0/15 en mode AI vs 13/15 en statique) et élimination totale des pertes de paquets (0.0%).
+- Temps de cycle de la boucle autonome : 5.527 ms moyen (< 100 ms cible Near-RT O-RAN, soit ~18× plus rapide que la contrainte critique).
+- Actuation concrète au niveau du noyau Linux via Traffic Control (`tc` qdisc TBF) sur les tranches URLLC, eMBB et mMTC.
+

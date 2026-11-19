@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 17/11/2026 (AT7 bis : 3 instances EC2 créées et joignables ; installation d'Open5GS et d'UERANSIM en cours, étape 51)
+**Dernière mise à jour :** 19/11/2026 (AT26 : Optimisation dynamique et réseau AI-native — boucle MAPE-K/OODA latence 1.646ms gain +93.6%, cycle 5.53ms — étape 68)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -88,6 +88,9 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 63 | 19/11 | AT13 — ConfigMap xapp-script + Job xapp-ran sur vm-upf : 3 boucles (read E2 -> decide RIC -> act -> verify) | Terminé | Loop1=109.5ms THROTTLE ; Loop2=7.9ms THROTTLE ; Loop3=6.7ms HOLD ; moy=41.3ms min=6.7ms max=109.5ms ; cible <1s ATTEINTE 3/3 |
 | 64 | 19/11 | AT13 — Preuves sauvegardees sur vmcp dans /home/ubuntu/at13/captures/ (pods_status.txt, ric_status.json 17Ko, xapp_results.log) | Terminé | 4 fichiers captures ; ric_status.json 171 decisions enregistrees |
 | 65 | 19/11 | AT14 — Preparation et construction du Dataset 6G Telecom (597 echantillons, fusion AT5/AT6/AT12/AT13, 3 slices eMBB/URLLC/mMTC equilibrees, normalisation Min-Max) | Terminé | dataset_6g_telecom.csv et dataset_6g_normalized.csv generes, DATASET_SCHEMA.md documente |
+| 66 | 19/11 | AT25 — Detection intelligente des anomalies reseau 6G : Z-Score (F1=0.033), Mahalanobis (F1=0.000), Regles expertes (F1=0.285, meilleur) | Terminé | at25_results.txt + anomalies_detectees.csv + AT25-livrable.md ; commit 38e84ae |
+| 67 | 19/11 | AT24 — IA Predictive kNN natif (k=5) : Accuracy=0.5462, Precision=0.46, Rappel=1.00, F1=0.63 ; Ridge λ=1e-3 latency_ms : MSE=21.91, MAE=4.09, R²=-7.13 | Terminé | at24_results.txt + predictions_knn.csv + AT24-livrable.md ; commit cdcd88c |
+| 68 | 19/11 | AT26 — Optimisation dynamique et réseau AI-native (boucle fermée MAPE-K / OODA) : latence moyenne 1.646 ms (gain +93.64%), pic réduit de 45 ms à 2.13 ms (+95.27%), 100% congestion résolue, temps de cycle moyen 5.527 ms (< 100 ms cible O-RAN) | Terminé | at26_results.txt + closed_loop_metrics.csv + AT26-livrable.md ; script closed_loop_ai.py |
 | 60 | 19/11 | AT13 — Verification infra k3s : 3 noeuds Ready (vm-cp control-plane, vm-ran, vm-upf) | Termine | v1.37.2+k3s1, containerd 2.3.7-k3s1, all Ready |
 | 61 | 19/11 | AT13 — Namespace at13-oran-ric cree ; ConfigMap e2node-script + Pod e2-node sur vm-ran (python:3.11-alpine, port 8080) ; Service e2-node-svc | Termine | Pod Running 10.42.1.16 vm-ran ; metriques JSON /metrics OK (lat, throughput, loss) |
 | 62 | 19/11 | AT13 — ConfigMap near-rt-ric-script + Pod near-rt-ric sur vm-cp (port 8081) ; Service near-rt-ric-svc ; boucle E2 500ms | Termine | Pod Running 10.42.0.25 vm-cp ; 171 boucles de controle executees ; loop_ms=1.792ms (cible Near-RT < 1s ATTEINTE) |
@@ -120,9 +123,9 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT21 | Blockchain | À commencer | | | |
 | AT22 | Quantum ML | À commencer | | | |
 | AT23 | IA générative / LLM | À commencer | | | |
-| AT24 | IA prédictive | À commencer | | | |
-| AT25 | Détection d'anomalies | À commencer | | | |
-| AT26 | Boucle AI-native | À commencer | | | |
+| AT24 | IA prédictive | Terminé | kNN natif k=5 : Acc=0.5462, Précision=0.46, Rappel=1.00, F1=0.63 ; Ridge λ=1e-3 latency_ms : MSE=21.91 ms², MAE=4.09 ms, R²=-7.13 ; commit cdcd88c | `/home/ubuntu/at24/captures/at24_results.txt` | AT25 |
+| AT25 | Détection d'anomalies | Terminé | Z-Score F1=0.033 / Mahalanobis F1=0.000 / Règles expertes F1=0.285 (meilleur) ; 192 vrais congestionnés sur 597 ; commit 38e84ae | `/home/ubuntu/at25/captures/at25_results.txt` | AT26 |
+| AT26 | Boucle AI-native | Terminé | Boucle fermée MAPE-K/OODA : latence moyenne 1.646 ms (gain +93.64% vs 25.868 ms statique), pic latence 2.130 ms (+95.27% vs 45 ms), pertes 0% (vs 4.73%), 100% congestion résolue (0/15 vs 13/15) ; temps cycle moyen 5.527 ms (< 100 ms cible O-RAN Near-RT) ; actuation tc TBF dynamique ; 3 exécutions réelles | `/home/ubuntu/at26/captures/at26_results.txt` | AT27 |
 | AT27 | Cybersécurité | À commencer | | | |
 | AT28 | Projet intégrateur | À commencer | | | |
 
