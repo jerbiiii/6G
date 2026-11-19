@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT26 : Optimisation dynamique et réseau AI-native — boucle MAPE-K/OODA latence 1.646ms gain +93.6%, cycle 5.53ms — étape 68)
+**Dernière mise à jour :** 19/11/2026 (AT15 : Mobilité avancée et handover 6G — Dual-gNB HIT=26.33ms, perte 10.0%, RTT 13.0ms — étape 69)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -91,6 +91,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 66 | 19/11 | AT25 — Detection intelligente des anomalies reseau 6G : Z-Score (F1=0.033), Mahalanobis (F1=0.000), Regles expertes (F1=0.285, meilleur) | Terminé | at25_results.txt + anomalies_detectees.csv + AT25-livrable.md ; commit 38e84ae |
 | 67 | 19/11 | AT24 — IA Predictive kNN natif (k=5) : Accuracy=0.5462, Precision=0.46, Rappel=1.00, F1=0.63 ; Ridge λ=1e-3 latency_ms : MSE=21.91, MAE=4.09, R²=-7.13 | Terminé | at24_results.txt + predictions_knn.csv + AT24-livrable.md ; commit cdcd88c |
 | 68 | 19/11 | AT26 — Optimisation dynamique et réseau AI-native (boucle fermée MAPE-K / OODA) : latence moyenne 1.646 ms (gain +93.64%), pic réduit de 45 ms à 2.13 ms (+95.27%), 100% congestion résolue, temps de cycle moyen 5.527 ms (< 100 ms cible O-RAN) | Terminé | at26_results.txt + closed_loop_metrics.csv + AT26-livrable.md ; script closed_loop_ai.py |
+| 69 | 19/11 | AT15 — Mobilité avancée et handover 6G : Dual-gNB (gNB1 source x00001, gNB2 cible x00002), Handover Interruption Time (HIT) moyen 26.33 ms (< 30 ms cible URLLC/6G), perte transitoire 10%, RTT post-handover 13.00 ms (gigue 1.62 ms) sur 3 runs réels | Terminé | at15_results.txt + AT15-livrable.md ; commit 8bb44f5 |
 | 60 | 19/11 | AT13 — Verification infra k3s : 3 noeuds Ready (vm-cp control-plane, vm-ran, vm-upf) | Termine | v1.37.2+k3s1, containerd 2.3.7-k3s1, all Ready |
 | 61 | 19/11 | AT13 — Namespace at13-oran-ric cree ; ConfigMap e2node-script + Pod e2-node sur vm-ran (python:3.11-alpine, port 8080) ; Service e2-node-svc | Termine | Pod Running 10.42.1.16 vm-ran ; metriques JSON /metrics OK (lat, throughput, loss) |
 | 62 | 19/11 | AT13 — ConfigMap near-rt-ric-script + Pod near-rt-ric sur vm-cp (port 8081) ; Service near-rt-ric-svc ; boucle E2 500ms | Termine | Pod Running 10.42.0.25 vm-cp ; 171 boucles de controle executees ; loop_ms=1.792ms (cible Near-RT < 1s ATTEINTE) |
@@ -114,7 +115,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT12 | Edge Intelligence | Termine | Namespace at12-edge-ia (K8s) ; Pod ia-edge (vm-ran 30120) + ia-cloud (vm-cp 30121) ; modele kNN (600 pts, k=7, 3 classes QoS : eMBB/URLLC/mMTC) ; benchmark 2 executions depuis UE vm-ran : Edge RTT 5.85-6.15ms vs Cloud 6.20-6.65ms, gain 5.6-7.5% | Modele kNN natif Python sans sklearn (Alpine) ; 2 executions mesure | AT13 |
 | AT13 | O-RAN, RIC | Termine | Namespace at13-oran-ric (K8s) ; Pod e2-node (vm-ran :8080 metriques JSON) + Pod near-rt-ric (vm-cp :8081 boucle 500ms) + Job xapp-ran (vm-upf) ; 3 boucles controle xApp : moy=41.3ms min=6.7ms max=109.5ms ; Near-RT RIC 171 boucles loop_ms=1.792ms ; cible <1s ATTEINTE ; preuves /home/ubuntu/at13/captures/ | Interface E2 et A1 simulees HTTP (pas de stack O-RAN open-source reelle) ; metriques aleatoires (pas de vrai gNB) | AT14 |
 | AT14 | Dataset 6G | Terminé | Dataset telecom 6G unifié : 597 échantillons équilibrés (183 eMBB 30.7%, 202 URLLC 33.8%, 212 mMTC 35.5%) ; 405 nominaux (67.8%) / 192 congestionnés (32.2%) ; 14 colonnes (débit, latence, pertes, gigue, CPU, actions RIC) ; versions brute et normalisée Min-Max prêtes pour l'IA | Fichiers générés par parsing de mesures réelles (AT5, AT6, AT12, AT13) ; prêt pour AT24/AT25 | AT15 |
-| AT15 | Mobilité et handover | À commencer | | | |
+| AT15 | Mobilité et handover | Terminé | Dual-gNB (x00001, x00002) connectés à AMF ; Handover Interruption Time (HIT) moyen 26.33 ms (conforme cible < 30 ms URLLC/6G) ; pertes transitoires 10.0%, RTT moyen 13.00 ms, gigue 1.62 ms ; 3 exécutions réelles ; commit 8bb44f5 | `/home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt` | AT16 |
 | AT16 | V2X | À commencer | | | |
 | AT17 | NTN | À commencer | | | |
 | AT18 | Gestion intelligente de la mobilité | À commencer | | | |

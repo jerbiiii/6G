@@ -405,3 +405,19 @@ cat /home/ubuntu/at26/captures/at26_results.txt
 - Temps de cycle de la boucle autonome : 5.527 ms moyen (< 100 ms cible Near-RT O-RAN, soit ~18× plus rapide que la contrainte critique).
 - Actuation concrète au niveau du noyau Linux via Traffic Control (`tc` qdisc TBF) sur les tranches URLLC, eMBB et mMTC.
 
+---
+
+### Capture 28 : Résultats réels Mobilité et Handover 6G (Dual-gNB) (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt
+```
+📸 **Ce que montre la capture :**
+- Architecture double point d'accès Dual-gNB (gNB1 `0x00001` source et gNB2 `0x00002` cible) connectés à l'AMF Open5GS (`172.31.47.81:38412`).
+- Détail des 3 runs réels de basculement inter-cellulaire (Handover).
+- Handover Interruption Time (HIT) moyen mesuré à **26.33 ms**, respectant le seuil critique 6G/URLLC (< 30 ms).
+- Taux de perte transitoire moyen de 10.0% durant la commutation radio, avec rétablissement immédiat de session.
+- Stabilité post-handover : RTT moyen de 13.00 ms et gigue réduite à 1.62 ms.
+
+
