@@ -1,0 +1,7 @@
+=== AT16 V2X & 6G COMMUNICATIONS RESULTS ===
+Run 1 | V2I-Urban (50 km/h) | PDR: 100.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.09 ms) | Jitter: 0.08 ms
+Run 1 | V2V-Highway (130 km/h) | PDR: 99.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.13 ms) | Jitter: 0.12 ms
+Run 2 | V2I-Urban (50 km/h) | PDR: 100.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.01 ms) | Jitter: 0.00 ms
+Run 2 | V2V-Highway (130 km/h) | PDR: 99.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.01 ms) | Jitter: 0.00 ms
+Run 3 | V2I-Urban (50 km/h) | PDR: 100.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.01 ms) | Jitter: 0.00 ms
+Run 3 | V2V-Highway (130 km/h) | PDR: 99.00% | Latency Avg: 0.01 ms (Min: 0.01 ms, Max: 0.01 ms) | Jitter: 0.00 ms
