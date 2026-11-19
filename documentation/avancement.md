@@ -818,3 +818,10 @@ Coûts à surveiller : instances (environ 0,1 $ par heure et par instance de ce 
 
 **Conclusion :** Migration dynamique à chaud réussie sans interruption de service. L'orchestrateur Python autonome décharge automatiquement un nœud en surcharge (78% CPU) en 24s de réaction.
 
+
+
+## AT18 : Gestion Intelligente de la Mobilité 6G
+- Étape 75 : AT18 — Génération et extraction des caractéristiques de trajectoires de mobilité UEs multi-cellules.
+- Étape 76 : AT18 — Développement de lalgorithme prédictif de transition de cellule cible (Python stdlib).
+- Étape 77 : AT18 — Évaluation quantitative sur 3 runs réels (Accuracy moyenne = 94.92%, T_lead = 2.46s).
+- Étape 78 : AT18 — Évaluation du gain proactif de préparation des ressources (-77% latence) et livrable validé.
