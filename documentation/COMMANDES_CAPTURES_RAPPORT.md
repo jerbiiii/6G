@@ -462,3 +462,18 @@ cat /home/ubuntu/at18/captures/at18_results.txt
 - **Accuracy moyenne de 94.92%** (Run 1: 94.80%, Run 2: 94.90%, Run 3: 95.05%), surpassant largement l'objectif cible (> 90%).
 - **Horizon temporel d'anticipation ($T_{lead}$) de 2.46 s**, offrant une marge temporelle idéale pour pré-établir les tunnels de données UPF/N3.
 - **Gain proactif de -77%** sur le délai de signalisation pré-handover (réduit de ~35 ms en réactif à ~8 ms en proactif).
+
+---
+
+### Capture 32 : Optimisation prédictive des ressources pour la mobilité 6G (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at19/captures/at19_results.txt
+```
+📸 **Ce que montre la capture :**
+- Benchmark comparatif quantitatif Réactif vs Prédictif AI-Native sur 3 runs d'expérimentation réels.
+- Réduction spectaculaire de la latence moyenne de **84.95 ms à 17.92 ms** (gain de **+78.9%**).
+- Élimination des pics de saturation transitoire : latence pic écrasée de **171.26 ms à 21.49 ms** (gain de **+87.5%**).
+- Taux de perte de paquets réduit de 3.92% à quasi zéro (**0.07%**).
+- Conformité stricte aux exigences de SLA : taux de violation de SLA chutant de 18.79% à seulement **0.49%** (cible < 1% respectée).

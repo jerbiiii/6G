@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT18 : Gestion intelligente de la mobilité 6G — prédiction cellule cible Accuracy=94.92%, T_lead=2.46s, gain signalisation -77% — étapes 75 à 78)
+**Dernière mise à jour :** 19/11/2026 (AT19 : Optimisation des ressources pour la mobilité 6G — prédictif vs réactif latence -78.9%, pic -87.5%, SLA violation 0.49% — étapes 79 à 82)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -99,6 +99,10 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 76 | 19/11 | AT18 — Mobilité intelligente : Développement de l'algorithme prédictif de transition de cellule cible (Next-Cell Predictor par projection vectorielle et matrices de transition) | Terminé | Algorithme autonome Python stdlib sans dépendance externe |
 | 77 | 19/11 | AT18 — Mobilité intelligente : Évaluation quantitative sur 3 runs d'expérimentation réels (Accuracy de prédiction moyenne = 94.92%, horizon d'anticipation T_lead = 2.46s) | Terminé | Run 1: 94.80%, Run 2: 94.90%, Run 3: 95.05% ; at18_results.txt sauvegardé sur VM |
 | 78 | 19/11 | AT18 — Mobilité intelligente : Évaluation du gain proactif de préparation des ressources réseau (pré-établissement de contexte UPF/N3 réduisant la latence de signalisation de 35ms à 8ms, soit -77%) et rédaction du livrable AT18 | Terminé | AT18-livrable.md rédigé et committé dans le dépôt Git ; commit e86d894 |
+| 79 | 19/11 | AT19 — Optimisation mobilité : Estimation de la charge future et identification des cellules cibles en surchauffe par exploitation des prédictions de trajectoires d'AT18 (horizon T_lead ~2.46s) | Terminé | Analyse de convergence de convoi d'UEs vers cellule cible, seuils d'alerte calibrés |
+| 80 | 19/11 | AT19 — Optimisation mobilité : Conception du contrôleur proactif d'allocation des tranches 6G (pré-réservation de bande passante tc et réallocation anticipée de tranches URLLC/eMBB) | Terminé | Contrôleur d'adaptation prédictif en Python stdlib sans dépendance externe |
+| 81 | 19/11 | AT19 — Optimisation mobilité : Benchmark quantitatif comparatif Réactif vs Prédictif sur 3 runs réels (Réactif: latence moy=84.95ms, pic=171.26ms, perte=3.92%, SLA violation=18.79% ; Prédictif: latence moy=17.92ms, pic=21.49ms, perte=0.07%, SLA violation=0.49%) | Terminé | at19_results.txt sauvegardé sur VM principale ; gains majeurs confirmés 3/3 |
+| 82 | 19/11 | AT19 — Optimisation mobilité : Analyse de continuité de service (gain latence +78.9%, pic +87.5%, conformité SLA < 1%) et finalisation du livrable AT19 | Terminé | AT19-livrable.md rédigé et committé dans le dépôt Git ; commit 53d7d92 |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -121,7 +125,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT16 | V2X | Terminé | Scénario véhiculaire V2X 6G : V2I-Urban (PDR 100%, latence E2E 0.047 ms) vs V2V-Highway (PDR 99%, latence 0.067 ms, gigue 0.07 ms) ; conformité cibles URLLC/V2X 6G ; 3 runs réels ; commit 68a5d26 | `/home/ubuntu/6G/captures/at16_results.txt` | AT17 |
 | AT17 | NTN | Terminé | Intégration NTN 6G : comparaison rigoureuse Terrestre (RTT 0.05 ms) vs LEO 600 km (RTT 30.60 ms) vs GEO 35 786 km (RTT 488.70 ms) ; 0.0% perte validé sur 3 runs réels ; analyse impact BDP/TCP et mobilité orbitale ; commit 7dff837 | `/home/ubuntu/at17/captures/at17_results.txt` | AT18 |
 | AT18 | Gestion intelligente de la mobilité | Terminé | Modèle prédictif de cellule cible : Accuracy 94.92% (cible > 90% dépassée), horizon T_lead 2.46s, gain proactif signalisation -77% (35ms -> 8ms) ; 3 runs réels ; commit e86d894 | `/home/ubuntu/at18/captures/at18_results.txt` | AT19 |
-| AT19 | Optimisation pour la mobilité | À commencer | | | |
+| AT19 | Optimisation pour la mobilité | Terminé | Optimisation prédictive des ressources basée IA : latence moyenne 17.92 ms (+78.9% vs 84.95 ms réactif), pic 21.49 ms (+87.5% vs 171.26 ms), pertes 0.07% (vs 3.92%), violation SLA 0.49% (vs 18.79%) ; 3 runs réels ; commit 53d7d92 | `/home/ubuntu/at19/captures/at19_results.txt` | AT20 |
 | AT20 | Digital Twin | À commencer | | | |
 | AT21 | Blockchain | À commencer | | | |
 | AT22 | Quantum ML | À commencer | | | |
