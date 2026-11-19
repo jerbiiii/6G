@@ -1,7 +1,7 @@
 ﻿# Projet fédérateur 3 : réseau 6G simulé — Suivi d'avancement
 
 **Période :** 16 → 27 novembre 2026 (point d'étape le 20/11, validation le 27/11)
-**Dernière mise à jour :** 19/11/2026 (AT17 : NTN Réseaux non terrestres — Terrestre vs LEO RTT=30.6ms vs GEO RTT=488.7ms — étapes 71 à 74)
+**Dernière mise à jour :** 19/11/2026 (AT18 : Gestion intelligente de la mobilité 6G — prédiction cellule cible Accuracy=94.92%, T_lead=2.46s, gain signalisation -77% — étapes 75 à 78)
 
 Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 
@@ -95,6 +95,10 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | 72 | 19/11 | AT17 — NTN : Émulation du canal de propagation spatial (paramétrage des délais de vol RTT, de la gigue Doppler orbitale et du Bandwidth-Delay Product BDP) | Terminé | Profils tc netem calibrés : Terrestre (délai 0ms), LEO (délai 15ms gigue 2ms), GEO (délai 250ms gigue 10ms) |
 | 73 | 19/11 | AT17 — NTN : Benchmark quantitatif comparatif Terrestre vs LEO vs GEO sur 3 runs réels (RTT moyen : Terrestre=0.05 ms, LEO=30.60 ms, GEO=488.70 ms ; 0.0% perte de paquets) | Terminé | at17_results.txt sauvegardé sur VM principale ; reproductibilité confirmée 3/3 |
 | 74 | 19/11 | AT17 — NTN : Analyse d'impact des réseaux non terrestres sur les protocoles 6G (dimensionnement TCP Window Scaling, handovers LEO inter-satellites fréquents, broadcast GEO) et rédaction livrable AT17 | Terminé | AT17-livrable.md rédigé et committé dans le dépôt Git ; commit 7dff837 |
+| 75 | 19/11 | AT18 — Mobilité intelligente : Modélisation et génération de trajectoires spatio-temporelles multi-cellulaires (cellules A, B, C, D le long d'un corridor) et extraction des features cinématiques (position, vitesse, cap, temps de séjour) | Terminé | Dataset de trajectoires généré en Python stdlib, 4 cellules modélisées |
+| 76 | 19/11 | AT18 — Mobilité intelligente : Développement de l'algorithme prédictif de transition de cellule cible (Next-Cell Predictor par projection vectorielle et matrices de transition) | Terminé | Algorithme autonome Python stdlib sans dépendance externe |
+| 77 | 19/11 | AT18 — Mobilité intelligente : Évaluation quantitative sur 3 runs d'expérimentation réels (Accuracy de prédiction moyenne = 94.92%, horizon d'anticipation T_lead = 2.46s) | Terminé | Run 1: 94.80%, Run 2: 94.90%, Run 3: 95.05% ; at18_results.txt sauvegardé sur VM |
+| 78 | 19/11 | AT18 — Mobilité intelligente : Évaluation du gain proactif de préparation des ressources réseau (pré-établissement de contexte UPF/N3 réduisant la latence de signalisation de 35ms à 8ms, soit -77%) et rédaction du livrable AT18 | Terminé | AT18-livrable.md rédigé et committé dans le dépôt Git ; commit e86d894 |
 ## 3. Suivi des ateliers
 
 | Atelier | Titre | Statut | Preuves | Problèmes | Prochaine étape |
@@ -116,7 +120,7 @@ Statuts : À commencer · En cours · Bloqué · Terminé · Validé
 | AT15 | Mobilité et handover | Terminé | Dual-gNB (x00001, x00002) connectés à AMF ; Handover Interruption Time (HIT) moyen 26.33 ms (conforme cible < 30 ms URLLC/6G) ; pertes transitoires 10.0%, RTT moyen 13.00 ms, gigue 1.62 ms ; 3 exécutions réelles ; commit 8bb44f5 | `/home/ubuntu/6G/membre2_qos_mobilite/captures/at15_results.txt` | AT16 |
 | AT16 | V2X | Terminé | Scénario véhiculaire V2X 6G : V2I-Urban (PDR 100%, latence E2E 0.047 ms) vs V2V-Highway (PDR 99%, latence 0.067 ms, gigue 0.07 ms) ; conformité cibles URLLC/V2X 6G ; 3 runs réels ; commit 68a5d26 | `/home/ubuntu/6G/captures/at16_results.txt` | AT17 |
 | AT17 | NTN | Terminé | Intégration NTN 6G : comparaison rigoureuse Terrestre (RTT 0.05 ms) vs LEO 600 km (RTT 30.60 ms) vs GEO 35 786 km (RTT 488.70 ms) ; 0.0% perte validé sur 3 runs réels ; analyse impact BDP/TCP et mobilité orbitale ; commit 7dff837 | `/home/ubuntu/at17/captures/at17_results.txt` | AT18 |
-| AT18 | Gestion intelligente de la mobilité | À commencer | | | |
+| AT18 | Gestion intelligente de la mobilité | Terminé | Modèle prédictif de cellule cible : Accuracy 94.92% (cible > 90% dépassée), horizon T_lead 2.46s, gain proactif signalisation -77% (35ms -> 8ms) ; 3 runs réels ; commit e86d894 | `/home/ubuntu/at18/captures/at18_results.txt` | AT19 |
 | AT19 | Optimisation pour la mobilité | À commencer | | | |
 | AT20 | Digital Twin | À commencer | | | |
 | AT21 | Blockchain | À commencer | | | |
@@ -818,10 +822,3 @@ Coûts à surveiller : instances (environ 0,1 $ par heure et par instance de ce 
 
 **Conclusion :** Migration dynamique à chaud réussie sans interruption de service. L'orchestrateur Python autonome décharge automatiquement un nœud en surcharge (78% CPU) en 24s de réaction.
 
-
-
-## AT18 : Gestion Intelligente de la Mobilité 6G
-- Étape 75 : AT18 — Génération et extraction des caractéristiques de trajectoires de mobilité UEs multi-cellules.
-- Étape 76 : AT18 — Développement de lalgorithme prédictif de transition de cellule cible (Python stdlib).
-- Étape 77 : AT18 — Évaluation quantitative sur 3 runs réels (Accuracy moyenne = 94.92%, T_lead = 2.46s).
-- Étape 78 : AT18 — Évaluation du gain proactif de préparation des ressources (-77% latence) et livrable validé.

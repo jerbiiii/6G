@@ -1,4 +1,4 @@
-# 📸 GUIDE DES COMMANDES POUR CAPTURES D'ÉCRAN — RAPPORT PROJET 6G
+﻿# 📸 GUIDE DES COMMANDES POUR CAPTURES D'ÉCRAN — RAPPORT PROJET 6G
 
 > Ce document regroupe **toutes les commandes prêtes à l'emploi** pour effectuer les captures d'écran nécessaires à l'évaluation et au rapport des ateliers **AT7-bis**, **AT8**, **AT9** et **AT10**.
 > 
@@ -449,6 +449,16 @@ cat /home/ubuntu/at17/captures/at17_results.txt
   * **GEO (Geostationary ~35 786 km)** : RTT moyen de **488.70 ms** (propagation longue distance, adapté à la diffusion broadcast/multicast et au backhaul).
 - Taux de perte de paquets de 0.0% pour tous les profils sous dimensionnement adéquat.
 
+---
 
-
-
+### Capture 31 : Gestion intelligente de la mobilité 6G (Prédiction de cellule cible) (6G-team)
+**Où :** Sur `6G-team`.
+```bash
+# Commande à capturer :
+cat /home/ubuntu/at18/captures/at18_results.txt
+```
+📸 **Ce que montre la capture :**
+- Résultats réels sur 3 runs du modèle cinématique d'anticipation de cellule cible multi-cellules (A, B, C, D).
+- **Accuracy moyenne de 94.92%** (Run 1: 94.80%, Run 2: 94.90%, Run 3: 95.05%), surpassant largement l'objectif cible (> 90%).
+- **Horizon temporel d'anticipation ($T_{lead}$) de 2.46 s**, offrant une marge temporelle idéale pour pré-établir les tunnels de données UPF/N3.
+- **Gain proactif de -77%** sur le délai de signalisation pré-handover (réduit de ~35 ms en réactif à ~8 ms en proactif).
