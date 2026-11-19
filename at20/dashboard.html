@@ -271,11 +271,15 @@
   <div class="card col-topologie">
     <div class="card-header">
       <div class="card-title">
-        <span>🌐 Topologie Physique & Liens Réseau</span>
+        <span>🌐 Topologie 6G E2E Bidirectionnelle (Radio Uu + Cœur N2/N3/N4)</span>
         <span class="tag tag-real">Réel</span>
       </div>
-      <div style="font-size:0.75rem; color:var(--text-secondary);">
-        Particules : <span style="color:#00e676;">Vert &lt;400M</span> | <span style="color:#ffb300;">Orange 400-700M</span> | <span style="color:#ff1744;">Rouge &gt;700M</span>
+      <div style="font-size:0.72rem; color:var(--text-secondary); display:flex; gap:10px; flex-wrap:wrap;">
+        <span>🟢 <strong style="color:#34d399;">Uplink (UE→gNB→UPF)</strong></span>
+        <span>🔵 <strong style="color:#00e5ff;">Downlink (UPF→gNB→UE)</strong></span>
+        <span>🟡 <strong style="color:#fbbf24;">URLLC Tranche 2</strong></span>
+        <span>🟣 <strong style="color:#c084fc;">N4 PFCP (SMF→UPF)</strong></span>
+        <span>🔷 <strong style="color:#60a5fa;">N2 NGAP (AMF→RAN)</strong></span>
       </div>
     </div>
     <canvas id="topoCanvas" width="700" height="320"></canvas>
@@ -451,30 +455,62 @@ let currentWhatIf = { traffic: 500, ue: 1, cpu: 100, gnb: "ALL_OK" };
 
 // Nœuds physiques réels et coordonnées pour topologie animée
 const topoNodes = {
-  cp:  { name: "vm-cp",  ip: "172.31.47.81",  role: "Control Plane", x: 140, y: 80,  color: "#00e5ff" },
-  ran: { name: "vm-ran", ip: "172.31.34.222", role: "RAN (gNB)",     x: 140, y: 240, color: "#3b82f6" },
-  upf: { name: "vm-upf", ip: "172.31.38.166", role: "User Plane",    x: 480, y: 160, color: "#a855f7" },
-  gnbB:{ name: "gNB-B",  ip: "Cell-2",        role: "Cellule 2",     x: 280, y: 270, color: "#38bdf8" },
-  ue1: { name: "UE-01",  ip: "10.45.0.3",     role: "eMBB UE",       x: 60,  y: 280, color: "#34d399" },
-  ue2: { name: "UE-02",  ip: "10.45.0.4",     role: "URLLC UE",      x: 60,  y: 200, color: "#fbbf24" }
+  cp:  { name: "vm-cp",  ip: "172.31.47.81",  role: "Control Plane (AMF/SMF)", x: 200, y: 70,  color: "#00e5ff" },
+  ran: { name: "vm-ran", ip: "172.31.34.222", role: "gNodeB-A (Master)",       x: 200, y: 240, color: "#3b82f6" },
+  upf: { name: "vm-upf", ip: "172.31.38.166", role: "User Plane (UPF)",       x: 520, y: 155, color: "#a855f7" },
+  gnbB:{ name: "gNB-B",  ip: "Cell-2 (Edge)", role: "gNodeB-B (Secondary)",    x: 350, y: 260, color: "#38bdf8" },
+  ue1: { name: "UE-01",  ip: "10.45.0.3",     role: "eMBB UE (SST 1)",         x: 55,  y: 240, color: "#34d399" },
+  ue2: { name: "UE-02",  ip: "10.45.0.4",     role: "URLLC UE (SST 2)",        x: 55,  y: 150, color: "#fbbf24" }
 };
 
-// Particules animées circulant sur les liens réseau
+// Modélisation complète des flux bidirectionnels (Data Plane UL/DL & Control Plane N2/N4)
+// Flux :
+// 1. eMBB Uplink: ue1 -> ran -> upf
+// 2. eMBB Downlink: upf -> ran -> ue1
+// 3. URLLC Uplink: ue2 -> gnbB (ou ran si panne) -> upf
+// 4. URLLC Downlink: upf -> gnbB (ou ran si panne) -> ue2
+// 5. N2 Control: cp <-> ran (NGAP/SCTP)
+// 6. N4 Control: cp <-> upf (PFCP/UDP)
+
 let particles = [];
-for (let i = 0; i < 35; i++) {
-  particles.push({
-    from: "ran", to: "upf",
-    progress: Math.random(),
-    speed: 0.005 + Math.random() * 0.008
-  });
+
+function initParticlePool() {
+  particles = [];
+  
+  // Flux eMBB UL (ue1 -> ran -> upf) : 20 particules
+  for (let i = 0; i < 10; i++) {
+    particles.push({ stream: "embb_ul1", from: "ue1", to: "ran", progress: Math.random(), speed: 0.009 + Math.random()*0.006, color: "#34d399", size: 3 });
+    particles.push({ stream: "embb_ul2", from: "ran", to: "upf", progress: Math.random(), speed: 0.008 + Math.random()*0.006, color: "#34d399", size: 3.2 });
+  }
+  
+  // Flux eMBB DL (upf -> ran -> ue1) : 20 particules
+  for (let i = 0; i < 10; i++) {
+    particles.push({ stream: "embb_dl1", from: "upf", to: "ran", progress: Math.random(), speed: 0.009 + Math.random()*0.006, color: "#00e5ff", size: 3 });
+    particles.push({ stream: "embb_dl2", from: "ran", to: "ue1", progress: Math.random(), speed: 0.008 + Math.random()*0.006, color: "#00e5ff", size: 3 });
+  }
+
+  // Flux URLLC UL & DL (prioritaire ultra-rapide) : 16 particules
+  for (let i = 0; i < 8; i++) {
+    particles.push({ stream: "urllc_ul_hop1", from: "ue2", to: "gnbB", progress: Math.random(), speed: 0.014 + Math.random()*0.006, color: "#fbbf24", size: 2.8 });
+    particles.push({ stream: "urllc_ul_hop2", from: "gnbB", to: "upf", progress: Math.random(), speed: 0.014 + Math.random()*0.006, color: "#fbbf24", size: 2.8 });
+    particles.push({ stream: "urllc_dl_hop1", from: "upf", to: "gnbB", progress: Math.random(), speed: 0.014 + Math.random()*0.006, color: "#f59e0b", size: 2.8 });
+    particles.push({ stream: "urllc_dl_hop2", from: "gnbB", to: "ue2", progress: Math.random(), speed: 0.014 + Math.random()*0.006, color: "#f59e0b", size: 2.8 });
+  }
+
+  // Signalisation Control Plane N2 (cp <-> ran) : 8 particules pulsées
+  for (let i = 0; i < 4; i++) {
+    particles.push({ stream: "ctrl_n2_down", from: "cp", to: "ran", progress: Math.random(), speed: 0.004 + Math.random()*0.003, color: "#60a5fa", size: 2.2 });
+    particles.push({ stream: "ctrl_n2_up",   from: "ran", to: "cp", progress: Math.random(), speed: 0.004 + Math.random()*0.003, color: "#60a5fa", size: 2.2 });
+  }
+
+  // Signalisation Control Plane N4 (cp <-> upf) : 8 particules pulsées
+  for (let i = 0; i < 4; i++) {
+    particles.push({ stream: "ctrl_n4_down", from: "cp", to: "upf", progress: Math.random(), speed: 0.004 + Math.random()*0.003, color: "#c084fc", size: 2.2 });
+    particles.push({ stream: "ctrl_n4_up",   from: "upf", to: "cp", progress: Math.random(), speed: 0.004 + Math.random()*0.003, color: "#c084fc", size: 2.2 });
+  }
 }
-for (let i = 0; i < 15; i++) {
-  particles.push({
-    from: "cp", to: "ran",
-    progress: Math.random(),
-    speed: 0.003 + Math.random() * 0.005
-  });
-}
+
+initParticlePool();
 
 function initTopo() {
   const canvas = document.getElementById("topoCanvas");
@@ -483,76 +519,122 @@ function initTopo() {
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Liens physiques N2, N3, N4
+    // Définition dynamique des liens physiques et logiques
     const links = [
-      { from: topoNodes.ran, to: topoNodes.upf, label: "N3 (GTP-U/UDP 2152)", flow: true },
-      { from: topoNodes.cp,  to: topoNodes.ran, label: "N2 (NG-C/SCTP 38412)", flow: false },
-      { from: topoNodes.cp,  to: topoNodes.upf, label: "N4 (PFCP/UDP 8805)",   flow: false },
-      { from: topoNodes.ue1, to: topoNodes.ran, label: "NR-Uu (Radio)",        flow: true },
-      { from: topoNodes.ue2, to: gnbBDown ? topoNodes.ran : topoNodes.gnbB, label: "NR-Uu", flow: true }
+      // 1. Data Plane N3 GTP-U (bidirectionnel)
+      { from: topoNodes.ran, to: topoNodes.upf, label: "N3 (GTP-U/UDP 2152)", type: "data", color: "#334155", width: 3 },
+      // 2. Control Plane N2 NG-C (bidirectionnel)
+      { from: topoNodes.cp,  to: topoNodes.ran, label: "N2 (NGAP/SCTP 38412)", type: "ctrl", color: "#1e3a8a", width: 2, dashed: true },
+      // 3. Control Plane N4 PFCP (bidirectionnel)
+      { from: topoNodes.cp,  to: topoNodes.upf, label: "N4 (PFCP/UDP 8805)",   type: "ctrl", color: "#581c87", width: 2, dashed: true },
+      // 4. Radio Uu eMBB
+      { from: topoNodes.ue1, to: topoNodes.ran, label: "NR-Uu (eMBB 10.45.0.3)", type: "radio", color: "#065f46", width: 2.5 },
     ];
 
-    // Tracé des liens
+    // Liaison gNB-B et reroutage dynamique
+    if (!gnbBDown) {
+      links.push({ from: topoNodes.ue2, to: topoNodes.gnbB, label: "NR-Uu (URLLC)", type: "radio", color: "#78350f", width: 2.5 });
+      links.push({ from: topoNodes.gnbB, to: topoNodes.upf, label: "N3 gNB-B (GTP-U)", type: "data", color: "#334155", width: 2.5 });
+      links.push({ from: topoNodes.ran, to: topoNodes.gnbB, label: "Xn-C (Inter-gNB)", type: "ctrl", color: "#1e293b", width: 1.5, dashed: true });
+    } else {
+      // gNB-B est en panne -> Liens rompus (rouge) + Liens de reroutage d'urgence vers vm-ran (gNB-A)
+      links.push({ from: topoNodes.ue2, to: topoNodes.gnbB, label: "NR-Uu (LIEN ROMPU)", type: "broken", color: "#7f1d1d", width: 2, dashed: true });
+      links.push({ from: topoNodes.ue2, to: topoNodes.ran,  label: "⚡ REROUTAGE URLLC -> gNB-A", type: "reroute", color: "#f97316", width: 3 });
+    }
+
+    // Tracé de chaque lien
     links.forEach(l => {
       ctx.beginPath();
-      ctx.strokeStyle = "#1e293b";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = l.color;
+      ctx.lineWidth = l.width;
+      if (l.dashed) ctx.setLineDash([4, 4]);
+      else ctx.setLineDash([]);
       ctx.moveTo(l.from.x, l.from.y);
       ctx.lineTo(l.to.x, l.to.y);
       ctx.stroke();
+      ctx.setLineDash([]);
 
-      // Texte lien
+      // Label du lien au centre
       const mx = (l.from.x + l.to.x) / 2;
-      const my = (l.from.y + l.to.y) / 2 - 6;
-      ctx.fillStyle = "#64748b";
-      ctx.font = "9px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
-      ctx.fillText(l.label, mx - 20, my);
+      const my = (l.from.y + l.to.y) / 2 - 5;
+      ctx.fillStyle = l.type === "broken" ? "#ef4444" : (l.type === "reroute" ? "#f97316" : "#64748b");
+      ctx.font = "bold 9px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
+      ctx.textAlign = "center";
+      ctx.fillText(l.label, mx, my);
     });
 
-    // Particules de flux
+    // Vitesse de circulation modulée par le débit réel ou le simulateur
     const th = lastRealMetric ? parseFloat(lastRealMetric.throughput_mbps) : 500;
-    let pColor = "#00e676";
     let speedMult = 1.0;
-    if (th > 700) { pColor = "#ff1744"; speedMult = 2.0; }
-    else if (th > 400) { pColor = "#ffb300"; speedMult = 1.4; }
+    if (th > 700) speedMult = 2.1;
+    else if (th > 400) speedMult = 1.4;
 
+    // Mise à jour et dessin de toutes les particules
     particles.forEach(p => {
       p.progress += p.speed * speedMult;
       if (p.progress > 1) p.progress = 0;
 
-      const fNode = topoNodes[p.from];
-      const tNode = topoNodes[p.to];
+      // Gestion dynamique du reroutage pour URLLC si gNB-B est DOWN
+      let fromKey = p.from;
+      let toKey = p.to;
+
+      if (gnbBDown) {
+        if (fromKey === "gnbB") fromKey = "ran";
+        if (toKey === "gnbB") toKey = "ran";
+        // Si la particule connecte ue2 à gnbB, elle va directement à ran
+        if (p.from === "ue2" && p.to === "gnbB") { fromKey = "ue2"; toKey = "ran"; }
+      }
+
+      const fNode = topoNodes[fromKey];
+      const tNode = topoNodes[toKey];
+      if (!fNode || !tNode) return;
+
       const px = fNode.x + (tNode.x - fNode.x) * p.progress;
       const py = fNode.y + (tNode.y - fNode.y) * p.progress;
 
+      // Couleur de particule avec alerte surcharge
+      let curColor = p.color;
+      if (p.stream.startsWith("embb") && th > 700) curColor = "#ff1744"; // Surcharge eMBB
+      else if (p.stream.startsWith("urllc") && gnbBDown) curColor = "#f97316"; // Reroutage urgence
+
       ctx.beginPath();
-      ctx.fillStyle = pColor;
-      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fillStyle = curColor;
+      ctx.shadowColor = curColor;
+      ctx.shadowBlur = 6;
+      ctx.arc(px, py, p.size, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0; // reset
     });
 
-    // Dessin des nœuds
+    // Dessin des nœuds avec états et halos
     Object.keys(topoNodes).forEach(k => {
       const n = topoNodes[k];
       const isFailed = (k === "gnbB" && gnbBDown);
 
+      // Halo externe
       ctx.beginPath();
-      ctx.arc(n.x, n.y, 18, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+      ctx.fillStyle = isFailed ? "rgba(239,68,68,0.2)" : (k.startsWith("ue") ? "rgba(52,211,153,0.15)" : "rgba(0,229,255,0.12)");
+      ctx.fill();
+
+      // Cercle central
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 16, 0, Math.PI * 2);
       ctx.fillStyle = isFailed ? "#7f1d1d" : "#0f172a";
       ctx.fill();
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.strokeStyle = isFailed ? "#ef4444" : n.color;
       ctx.stroke();
 
-      // Label Nœud
+      // Texte Nœud
       ctx.fillStyle = isFailed ? "#ef4444" : "#f1f5f9";
-      ctx.font = "bold 11px sans-serif";
+      ctx.font = "bold 10.5px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(isFailed ? n.name + " (DOWN)" : n.name, n.x, n.y + 32);
+      ctx.fillText(isFailed ? n.name + " [PANNE]" : n.name, n.x, n.y + 28);
 
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "9px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
-      ctx.fillText(n.ip, n.x, n.y + 44);
+      ctx.fillStyle = isFailed ? "#f87171" : "#94a3b8";
+      ctx.font = "8.5px " + getComputedStyle(document.body).getPropertyValue('--font-mono');
+      ctx.fillText(n.ip, n.x, n.y + 40);
     });
 
     requestAnimationFrame(draw);
