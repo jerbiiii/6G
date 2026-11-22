@@ -23,3 +23,4 @@
 - Modele : tinyllama (commande: ollama pull tinyllama)
 - Flask AT23 : 0.0.0.0:8023 (tmux session at23)
 - Flask version : 3.1.3 (commande: python3 -c "import flask; print(flask.__version__)")
+| 2026-11-22 | AT27 Cybersécurité | Interfaces 3GPP en clair sans IPsec/TLS (score D), 5G-AKA fonctionnel (rejet rogue), cœur stable sous rafale 476k pps, dashboard :8027 actif | at27_robustness.py, journalctl |

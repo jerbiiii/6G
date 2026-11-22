@@ -1,0 +1,24 @@
+======================================================================
+RÉSULTATS DES TESTS D'AUTHENTIFICATION 5G-AKA (AT27)
+Date: Sun Nov 22 2026
+======================================================================
+
+1. TEST AUTHENTIFICATION NOMINALE (UE LÉGITIME):
+- IMSI: imsi-999700000000001
+- Clés cryptographiques: Ki=465B5CE8B199B49FAA5F0A2EE238A6BC, OPC=E8ED289DEBA952E4283B54E88E6183CA
+- Résultat AMF: [gmm] INFO: [imsi-999700000000001] Registration complete
+- Résultat UE: Initial Registration is successful, PDU Session establishment is successful PSI[1]
+- Statut: SUCCÈS (Authentification 5G-AKA validée, conformité 3GPP TS 33.501)
+
+2. TEST TENTATIVE D'INTRUSION (UE NON AUTORISÉ / ROGUE):
+- IMSI: imsi-999700000000999 (Absent de la base UDR/MongoDB)
+- Clés: Clés aléatoires non dérivées de l'opérateur
+- Résultat AMF/UDM: Rejet d'authentification, aucune dérivation de clé K_amf/K_seaf
+- Résultat UE: Échec de connexion réseau, session PDU rejetée
+- Statut: SÉCURISÉ (Le cœur 6G bloque l'accès non autorisé au plan usager)
+
+3. VULNÉRABILITÉ IDENTIFIÉE AU NIVEAU DE L'AIR (SUCI / NULL-SCHEME):
+- protectionScheme: 0 (Null-scheme utilisé en testbed)
+- Risque: En Null-scheme, l'IMSI est transmis en clair lors du premier attachement (vulnérabilité IMSI-Catcher)
+- Recommandation: Forcer protectionScheme: 1 (Profile A - ECIES avec courbe Curve25519)
+======================================================================

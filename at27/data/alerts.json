@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ALT-115855",
+    "timestamp": "2026-11-22 09:35:15 UTC",
+    "type": "CLEARTEXT_USERPLANE",
+    "severity": "WARNING",
+    "src_ip": "172.31.34.222",
+    "target": "172.31.38.166:2152 (N3-GTP)",
+    "description": "Trafic usager GTP-U sans chiffrement de tunnel (Vuln\u00e9rabilit\u00e9 \u00e9coute passive)"
+  },
+  {
+    "id": "ALT-115854",
+    "timestamp": "2026-11-22 09:35:15 UTC",
+    "type": "CLEARTEXT_SIGNALING",
+    "severity": "WARNING",
+    "src_ip": "172.31.34.222",
+    "target": "172.31.47.81:38412 (N2-NGAP)",
+    "description": "Signalisation N2 transmise sans encapsulation IPsec ESP (Risque interception 3GPP)"
+  },
+  {
+    "id": "ALT-115853",
+    "timestamp": "2026-11-22 09:35:15 UTC",
+    "type": "UDP_BURST_N3",
+    "severity": "HIGH",
+    "src_ip": "172.31.41.25 (6G-team)",
+    "target": "UPF N3 GTP-U (172.31.38.166:2152)",
+    "description": "Rafale UDP anormale d\u00e9tect\u00e9e (1000 paquets en 2.1 ms, 476k pps)"
+  },
+  {
+    "id": "ALT-115852",
+    "timestamp": "2026-11-22 09:35:15 UTC",
+    "type": "PORT_SCAN_DETECTED",
+    "severity": "MEDIUM",
+    "src_ip": "172.31.41.25 (6G-team)",
+    "target": "Control-Plane (172.31.47.81)",
+    "description": "Balayage TCP rapide d\u00e9tect\u00e9 sur ports sensibles (22, 6443, 7777, 10250)"
+  },
+  {
+    "id": "ALT-115851",
+    "timestamp": "2026-11-22 09:35:15 UTC",
+    "type": "ROGUE_UE_ATTEMPT",
+    "severity": "HIGH",
+    "src_ip": "172.31.34.222 (vm-ran)",
+    "target": "AMF (172.31.47.81:38412)",
+    "description": "Tentative d'enregistrement avec IMSI non provisionn\u00e9: imsi-999700000000999 (Rejet 5G-AKA)"
+  }
+]

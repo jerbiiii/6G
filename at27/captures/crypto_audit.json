@@ -1,0 +1,44 @@
+{
+  "audit_timestamp": "2026-11-22T09:32:00Z",
+  "testbed": "AWS EC2 multi-node 6G testbed",
+  "interfaces": [
+    {
+      "name": "N2 (NGAP)",
+      "endpoints": "gNB (172.31.34.222) <-> AMF (172.31.47.81:38412)",
+      "transport": "SCTP",
+      "encryption": "AUCUN (Clair)",
+      "status": "VULNERABLE",
+      "risk": "Interception de signalisation, injection d'ordres de déconnexion, déni de service radio",
+      "recommendation_3gpp": "Déployer IPsec ESP (RFC 4303) ou DTLS obligatoire selon 3GPP TS 33.501"
+    },
+    {
+      "name": "N3 (GTP-U)",
+      "endpoints": "gNB (172.31.34.222) <-> UPF (172.31.38.166:2152)",
+      "transport": "UDP",
+      "encryption": "AUCUN (Clair)",
+      "status": "VULNERABLE",
+      "risk": "Écoute clandestine du trafic données UE, injection de paquets GTP malformés",
+      "recommendation_3gpp": "Chiffrement du trafic utilisateur via IPsec tunnel ou chiffrement applicatif bout-en-bout (TLS/QUIC)"
+    },
+    {
+      "name": "N4 (PFCP)",
+      "endpoints": "SMF (172.31.47.81) <-> UPF (172.31.38.166:8805)",
+      "transport": "UDP",
+      "encryption": "AUCUN (Clair)",
+      "status": "VULNERABLE",
+      "risk": "Falsification des règles de routage (PDR/FAR), détournement de sessions de données",
+      "recommendation_3gpp": "IPsec tunnel avec authentification IKEv2 entre SMF et UPF (3GPP TS 33.501 §9.3)"
+    },
+    {
+      "name": "SBI (Service Based)",
+      "endpoints": "AMF, SMF, UDM, AUSF, NRF (127.0.0.x:7777)",
+      "transport": "HTTP/2 sans TLS",
+      "encryption": "AUCUN (HTTP clair local)",
+      "status": "PARTIELLEMENT_ISOLE",
+      "risk": "Faible car limité au localhost de vmcp, mais risque élevé en cas de pod compromis dans le cluster k3s",
+      "recommendation_3gpp": "Activer mTLS (authentification mutuelle par certificats x509) et Service Mesh (ex: Istio/Linkerd)"
+    }
+  ],
+  "global_security_score": "D (Non-sécurisé en l'état sans couche IPsec d'infrastructure)",
+  "verified_by": "AT27 Cybersécurité Specialist"
+}

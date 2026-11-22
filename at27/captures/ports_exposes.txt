@@ -1,0 +1,27 @@
+======================================================================
+CARTOGRAPHIE RÉELLE DES PORTS ET INTERFACES 3GPP (AT27)
+Date: Sun Nov 22 2026
+======================================================================
+
+1. NŒUD CONTROL-PLANE vm-cp (172.31.47.81):
+- SCTP 172.31.47.81:38412  -> Interface N2 (NGAP - gNB <-> AMF)
+- UDP  172.31.47.81:8805   -> Interface N4 (PFCP - SMF <-> UPF)
+- TCP  127.0.0.x:7777      -> Interfaces SBI internes (REST/HTTP)
+- TCP  172.31.47.81:6443   -> Kubernetes API Server (k3s control plane)
+- TCP  172.31.47.81:10250  -> Kubelet
+
+2. NŒUD USER-PLANE vm-upf (172.31.38.166):
+- UDP  172.31.38.166:2152  -> Interface N3 (GTP-U - gNB <-> UPF Trafic Usager)
+- UDP  172.31.38.166:8805  -> Interface N4 (PFCP - Association de Session UPF)
+- IP   10.45.0.1 (ogstun)  -> Passerelle de tranche réseau eMBB
+- TCP  *:10250             -> Kubelet agent
+
+3. NŒUD RAN vm-ran (172.31.34.222):
+- Client SCTP -> se connecte à 172.31.47.81:38412 (N2)
+- Client UDP  -> émet/reçoit GTP-U vers 172.31.38.166:2152 (N3)
+- TCP  *:10250             -> Kubelet agent
+
+4. VM PRINCIPALE 6G-team (172.31.41.25):
+- TCP  0.0.0.0:8023        -> Dashboard AT23 (LLM)
+- TCP  0.0.0.0:8027        -> Dashboard AT27 (Cybersécurité - en cours)
+======================================================================

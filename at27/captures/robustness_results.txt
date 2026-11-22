@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-11-22T09:35:00Z",
+  "tests": [
+    {
+      "name": "Port Scan Control-Plane",
+      "target": "172.31.47.81",
+      "tested_ports": [
+        22,
+        80,
+        443,
+        6443,
+        7777,
+        8805,
+        10250,
+        38412
+      ],
+      "open_ports": [
+        22,
+        80,
+        443,
+        6443,
+        10250
+      ],
+      "duration_s": 0.001,
+      "status": "COMPLETED"
+    },
+    {
+      "name": "Controlled UDP Burst N3",
+      "target": "172.31.38.166:2152",
+      "packets_sent": 1000,
+      "packet_size_bytes": 512,
+      "duration_s": 0.0021,
+      "rate_pps": 476190.5,
+      "status": "COMPLETED"
+    }
+  ],
+  "core_health": {
+    "amfd": "active",
+    "smfd": "active",
+    "upfd": "active",
+    "stable_and_intact": true
+  }
+}

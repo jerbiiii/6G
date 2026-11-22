@@ -17,3 +17,9 @@
 - Resultat : OK - Ollama/TinyLlama actif sur 127.0.0.1:11434, Flask 0.0.0.0:8023
 - Tests : analyze_urllc.json (ollama OK), generate_config.json (rule_based), chat_test.json (ollama OK)
 - Fichier de preuve : /home/ubuntu/at23/captures/
+## [2026-11-22 09:36] AT27 - Cybersécurité et Détection d'Intrusion 6G
+- Constat : Cartographie 3GPP (N2 38412, N3 2152, N4 8805), TLS absent (commenté dans /etc/open5gs/), 5G-AKA actif
+- Action : Audit crypto, tests auth rogue vs légitime, burst UDP 476k pps vers UPF N3, IDS léger, dashboard :8027
+- Résultat : OK - Stabilité cœur 100%, rogue UE bloqué, HTTP 200 sur dashboard
+- Fichier de preuve : /home/ubuntu/at27/captures/
+
