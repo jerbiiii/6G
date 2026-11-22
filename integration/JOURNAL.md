@@ -10,3 +10,10 @@
 - Action : Lancement collecteur 30s (tmux at21-collector) → 15 blocs au total
 - Résultat : OK — blockchain opérationnelle, intégrité vérifiée, dashboard sur :8021/dashboard
 - Fichier de preuve : /home/ubuntu/at21/captures/validate_output.txt
+
+## [2026-11-22 09:24] AT23 - IA Generative LLM reseau 6G
+- Constat : RAM 4.7GB libre, HuggingFace accessible, Ollama non installe, port 8023 libre
+- Action : Installation Ollama + pull tinyllama + Flask 8023 (tmux at23)
+- Resultat : OK - Ollama/TinyLlama actif sur 127.0.0.1:11434, Flask 0.0.0.0:8023
+- Tests : analyze_urllc.json (ollama OK), generate_config.json (rule_based), chat_test.json (ollama OK)
+- Fichier de preuve : /home/ubuntu/at23/captures/

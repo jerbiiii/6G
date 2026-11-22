@@ -15,3 +15,11 @@
 | CPU vm-ran | 119m (5%) | kubectl top nodes | 2026-11-22 |
 | CPU vm-upf | 47m (2%) | kubectl top nodes | 2026-11-22 |
 | RAM vm-cp | 1719Mi (22%) | kubectl top nodes | 2026-11-22 |
+
+## AT23 - 2026-11-22
+- RAM libre VM 6g : 4.7 GB (commande: free -h)
+- Ollama installe : /usr/local/bin/ollama (commande: which ollama)
+- Ollama port : 127.0.0.1:11434 (commande: curl /api/tags)
+- Modele : tinyllama (commande: ollama pull tinyllama)
+- Flask AT23 : 0.0.0.0:8023 (tmux session at23)
+- Flask version : 3.1.3 (commande: python3 -c "import flask; print(flask.__version__)")
