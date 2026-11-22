@@ -23,3 +23,19 @@
 - Résultat : OK - Stabilité cœur 100%, rogue UE bloqué, HTTP 200 sur dashboard
 - Fichier de preuve : /home/ubuntu/at27/captures/
 
+
+## [2026-11-22 11:30] AT20 - Etape 5 : Dashboard Flask
+- Constat : Flask 3.1.3 disponible, port 8090 libre, twin.py csv_path OK
+- Action : Creation app.py (474 lignes) avec topologie animee, jauges CPU, courbes, what-if, tableau MAPE
+- Resultat : OK - HTTP 200 sur /health, /dashboard, /api/metrics, /api/predict
+- Fichier de preuve : at20/captures/dashboard_step5_200.txt
+
+## [2026-11-22 11:30] AT20 - Etape 6 : VERIFICATION.md
+- Constat : Toutes preuves collectees (ip -br a, grep hardcoded, timestamps CSV, source=real)
+- Action : Creation VERIFICATION.md (168 lignes) audit anti-hallucination complet
+- Resultat : OK - 10 sections documentees avec preuves
+
+## [2026-11-22 11:30] AT20 - TERMINE
+- Commit : 3bba068 - 26 fichiers, 2525 insertions
+- Dashboard accessible : ssh -L 8090:localhost:8090 -i 6g-team-key.pem ubuntu@51.20.191.212
+- MAPE moyen (hors S3) : 31.2% - S3 non valide (1 seul gNB)
