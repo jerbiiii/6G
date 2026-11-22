@@ -1,0 +1,32 @@
+
+======================================================================
+  AT20 Digital Twin — Modèle Hybride M/M1 + Ridge
+  Calibré sur 9 échantillons réels | 2026-11-22T10:06:22
+  Latence de base mesurée : 0.0483 ms
+======================================================================
+
+  Scénario : Baseline (aucun UE)
+    M/M1   : 0.0490 ms  (rho=0.014, stable=True)
+    Ridge  : 0.0434 ms  (confiance=medium, N=9)
+    Combiné: 0.0462 ms
+    Perte prédite : 0.04%  |  CPU UPF prédit : 2.0%
+    ✅ Aucune violation SLA
+
+  Scénario : eMBB chargé (5 UE)
+    M/M1   : 0.0686 ms  (rho=0.295, stable=True)
+    Ridge  : 0.0010 ms  (confiance=medium, N=9)
+    Combiné: 0.0348 ms
+    Perte prédite : 0.80%  |  CPU UPF prédit : 44.0%
+    ✅ Aucune violation SLA
+
+  Scénario : Critique (20 UE, 85% CPU)
+    M/M1   : 0.1401 ms  (rho=0.655, stable=True)
+    Ridge  : 0.0082 ms  (confiance=medium, N=9)
+    Combiné: 0.0742 ms
+    Perte prédite : 1.70%  |  CPU UPF prédit : 119.0%
+    ⚠️  SLA_VIOLATION: Loss 1.70% > 1.0%
+    ⚠️  SLA_VIOLATION: CPU UPF 119.0% > 80.0%
+
+  Sources M/M1 : analytical_model
+  Sources Ridge: calibrated_on_9_real_samples
+======================================================================

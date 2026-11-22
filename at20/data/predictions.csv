@@ -1,5 +1,5 @@
-scenario_id,scenario_desc,total_traffic_mbps,pred_latency_ms,pred_throughput_mbps,pred_loss_pct,pred_cpu_upf_pct,embb_lat_ms,urllc_lat_ms,mmtc_lat_ms,sla_violated,sla_details,data_origin
-S1_eMBB_Burst,Explosion de trafic eMBB (+250 Mbps),775.0,1.383,775.0,0.3,69.2,1.383,0.581,3.458,False,NONE,PREDICTED
-S2_URLLC_Critical,Charge critique URLLC (80 Mbps),490.0,2.656,490.0,0.0,49.3,2.656,1.116,6.64,False,NONE,PREDICTED
-S3_gNB_Failure,Panne du gNB-B et ré-aiguillage des UE,325.0,6.035,325.0,0.0,37.8,6.035,2.535,15.088,True,URLLC_SLA_VIOLATED,PREDICTED
-S4_UPF_CPU_Limit,Réduction du CPU alloué à l'UPF (35%),375.0,97.696,350.0,6.67,100.0,97.696,41.032,244.24,True,eMBB_SLA_VIOLATED;URLLC_SLA_VIOLATED;mMTC_SLA_VIOLATED,PREDICTED
+timestamp,scenario_id,description,param_ue_count,param_traffic_mbps,param_cpu_upf_pct,param_cpu_cp_pct,param_cpu_ran_pct,baseline_latency_ms,predicted_latency_mm1_ms,predicted_latency_ridge_ms,predicted_latency_combined_ms,delta_latency_ms,delta_latency_pct,predicted_loss_pct,predicted_cpu_upf_pct,sla_violations_count,sla_violations,queue_stable,ridge_confidence,source
+2026-11-22T10:06:47.366839+00:00,S1_embb_burst,Explosion trafic eMBB +250 Mbps (burst charge extrême),10,250,70,55,40,0.0462,0.1111,0.0025,0.0568,0.0106,22.9,1.4,84.0,2,SLA_VIOLATION: Loss 1.40% > 1.0% | SLA_VIOLATION: CPU UPF 84.0% > 80.0%,True,medium,digital_twin_prediction
+2026-11-22T10:06:47.366839+00:00,S2_urllc_critical,Charge critique URLLC — 80 Mbps trafic temps-réel,5,80,50,35,25,0.0462,0.0772,0.001,0.0391,-0.0071,-15.4,1.0,55.0,0,NONE,True,medium,digital_twin_prediction
+2026-11-22T10:06:47.366839+00:00,S3_gnb_b_failure,Panne gNB-B — UE reroutés vers gNB-A et gNB-C (+50% charge),15,120,60,65,75,0.0462,0.0888,0.4827,0.2858,0.2396,518.6,1.2,78.0,1,SLA_VIOLATION: Loss 1.20% > 1.0%,True,medium,digital_twin_prediction
+2026-11-22T10:06:47.366839+00:00,S4_upf_cpu_reduction,Réduction CPU UPF à 35% (limitation ressource),5,50,35,30,15,0.0462,0.0653,0.001,0.0331,-0.0131,-28.4,0.7,38.5,0,NONE,True,medium,digital_twin_prediction

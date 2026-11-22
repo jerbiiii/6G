@@ -1,0 +1,10 @@
+timestamp,latency_ms,latency_target,latency_source,loss_pct,loss_source,throughput_mbps,throughput_source,cpu_vmcp_pct,cpu_vmran_pct,cpu_vmupf_pct,ram_vmcp_mb,ram_vmran_mb,ram_vmupf_mb,resources_source,ue_count,ue_source,handover_count,mobility_source,slice_embb_latency_ms,slice_embb_source,slice_urllc_latency_ms,slice_urllc_source,slice_mmtc_latency_ms,slice_mmtc_source
+2026-11-22T09:57:12Z,0.056,10.45.0.1,real,66.6667,real,0,UNAVAILABLE,4.0,1.0,1.0,1833,758,832,real,0,unavailable,0,GENERATED,0.056,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:30Z,0.042,10.45.0.1,real,33.3333,real,0,UNAVAILABLE,4.0,0.0,1.0,1836,762,833,real,0,unavailable,0,GENERATED,0.042,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:35Z,0.054,10.45.0.1,real,66.6667,real,0,UNAVAILABLE,5.0,1.0,2.0,1834,758,832,real,0,unavailable,0,GENERATED,0.054,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:40Z,0.022,10.45.0.1,real,66.6667,real,0,UNAVAILABLE,5.0,1.0,2.0,1834,758,832,real,0,unavailable,0,GENERATED,0.022,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:45Z,0.045,10.45.0.1,real,33.3333,real,0,UNAVAILABLE,5.0,1.0,2.0,1834,758,832,real,0,unavailable,0,GENERATED,0.045,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:50Z,0.047,10.45.0.1,real,33.3333,real,0,UNAVAILABLE,6.0,2.0,2.0,1841,761,833,real,0,unavailable,0,GENERATED,0.047,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:57:55Z,0.063,10.45.0.1,real,66.6667,real,0,UNAVAILABLE,6.0,2.0,2.0,1841,761,833,real,0,unavailable,0,GENERATED,0.063,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:58:00Z,0.062,10.45.0.1,real,66.6667,real,0,UNAVAILABLE,6.0,2.0,2.0,1841,761,833,real,0,unavailable,0,GENERATED,0.062,real,NaN,unavailable,NaN,unavailable
+2026-11-22T09:58:05Z,0.044,10.45.0.1,real,33.3333,real,0,UNAVAILABLE,5.0,1.0,1.0,1839,758,833,real,0,unavailable,0,GENERATED,0.044,real,NaN,unavailable,NaN,unavailable

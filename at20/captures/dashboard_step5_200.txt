@@ -1,0 +1,108 @@
+=== AT20 Dashboard Step5 Proof ===
+Sun Nov 22 10:28:33 UTC 2026
+
+=== GET /health ===
+{"status":"ok","timestamp":"2026-11-22T10:28:33.281582Z"}
+
+
+=== GET /api/metrics (count + last) ===
+Count: 9
+{
+  "cpu_vmcp_pct": "5.0",
+  "cpu_vmran_pct": "1.0",
+  "cpu_vmupf_pct": "1.0",
+  "handover_count": "0",
+  "latency_ms": "0.044",
+  "latency_source": "real",
+  "latency_target": "10.45.0.1",
+  "loss_pct": "33.3333",
+  "loss_source": "real",
+  "mobility_source": "GENERATED",
+  "ram_vmcp_mb": "1839",
+  "ram_vmran_mb": "758",
+  "ram_vmupf_mb": "833",
+  "resources_source": "real",
+  "slice_embb_latency_ms": "0.044",
+  "slice_embb_source": "real",
+  "slice_mmtc_latency_ms": "NaN",
+  "slice_mmtc_source": "unavailable",
+  "slice_urllc_latency_ms": "NaN",
+  "slice_urllc_source": "unavailable",
+  "throughput_mbps": "0",
+  "throughput_source": "UNAVAILABLE",
+  "timestamp": "2026-11-22T09:58:05Z",
+  "ue_count": "0",
+  "ue_source": "unavailable"
+}
+
+=== GET /api/comparison ===
+[
+    {
+        "description": "Explosion trafic eMBB +250 Mbps (burst charge extr\u00eame)",
+        "mape_cpu_pct": "1373.68",
+        "mape_latency_pct": "33.65",
+        "measured_cpu_upf_pct": "5.7",
+        "measured_latency_ms": "0.0425",
+        "measured_loss_pct": "50.0",
+        "predicted_cpu_upf_pct": "84.0",
+        "predicted_latency_ms": "0.0568",
+        "predicted_loss_pct": "1.4",
+        "rmse_latency_ms": "0.0143",
+        "scenario_id": "S1_embb_burst",
+        "sla_violations": "SLA_VIOLATION: Loss 1.40% > 1.0% | SLA_VIOLATION: CPU UPF 84.0% > 80.0%",
+        "source": "real_measurement",
+        "timestamp": "2026-11-22T10:08:46.006672+00:00"
+    },
+    {
+        "description": "Charge critique URLLC \u2014 80 Mbps trafic temps-r\u00e9el",
+        "mape_cpu_pct": "1209.52",
+        "mape_latency_pct": "32.0",
+        "measured_cpu_upf_pct": "4.2",
+        "measured_latency_ms": "0.0575",
+        "measured_loss_pct": "58.33",
+        "predicted_cpu_upf_pct": "55.0",
+        "predicted_latency_ms": "0.0391",
+        "predicted_loss_pct": "1.0",
+        "rmse_latency_ms": "0.0184",
+        "scenario_id": "S2_urllc_critical",
+        "sla_violations": "NONE",
+        "source": "real_measurement",
+        "timestamp": "2026-11-22T10:09:23.211137+00:00"
+    },
+    {
+        "description": "Panne gNB-B \u2014 UE rerout\u00e9s vers gNB-A et gNB-C (+50% charge)",
+        "mape_cpu_pct": "1542.11",
+        "mape_latency_pct": "417.29",
+        "measured_cpu_upf_pct": "4.75",
+        "measured_latency_ms": "0.0553",
+        "measured_loss_pct": "50.0",
+
+=== GET /api/predict?ue_count=5&traffic_mbps=100&cpu_upf_pct=40 ===
+{
+    "calibrated_at": "2026-11-22T10:28:17.556818+00:00",
+    "data_sources": {
+        "latency_base_ms": 0.04833333333333333,
+        "mm1": "analytical_model",
+        "ridge": "calibrated_on_9_real_samples"
+    },
+    "inputs": {
+        "cpu_upf_pct": 40.0,
+        "traffic_mbps": 100.0,
+        "ue_count": 5.0
+    },
+    "model_version": "1.0",
+    "n_training_samples": 9,
+    "predicted_cpu_upf_pct": 44.0,
+    "predicted_latency_combined_ms": 0.0355,
+    "predicted_latency_mm1_ms": 0.07,
+    "predicted_latency_ridge_ms": 0.001,
+    "predicted_loss_pct": 0.8,
+    "queue_stable": true,
+    "rho": 0.31,
+    "ridge_confidence": "medium",
+    "sla_violations": [],
+    "source": "PREDICTED"
+}
+
+=== GET /dashboard HTTP status ===
+HTTP 200

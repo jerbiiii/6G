@@ -1,0 +1,33 @@
+=== DISCOVERY AT20 STEP 1 ===
+Date: 2026-11-22T09:57:00Z
+
+--- VM 6g (locale) ---
+hostname: 6G-team
+enp39s0: 172.31.41.25/20 (UP)
+ogstun: DOWN (fe80 only, pas d UE actif local)
+docker0: DOWN
+lxdbr0: UP 10.10.10.1/24
+
+--- vmupf (172.31.38.166) ---
+ogstun: UP 10.45.0.1/16 (SST1 eMBB) - CONFIRME ACTIF
+ogstun2: ABSENT
+ogstun3: ABSENT
+iperf3: processus actif (PID 2738, dans pod CNF), TCP 5201 non joignable depuis hôte
+
+--- vmran (172.31.34.222) ---
+uesimtun: ABSENT (NO_UE) - pas de session UE active
+
+--- vmcp (172.31.47.81) kubectl top nodes ---
+vm-cp    ~4-6%  ~1835 MiB
+vm-ran   ~1-2%  ~758-762 MiB
+vm-upf   ~1-2%  ~832-833 MiB
+kubectl top: OPERATIONNEL
+
+--- Ping tests ---
+ping 10.45.0.1 (ogstun): REACHABLE, RTT ~0.02-0.06ms, perte variable 0-66% (-c3)
+ping 172.31.38.166 (vmupf): 0% perte, RTT ~0.25ms
+
+--- iperf3 ---
+Binaire present sur 6g et vmupf
+Serveur iperf3 dans pod CNF (ogstun namespace), non joignable via IP host 172.31.38.166:5201
+=> throughput_source: UNAVAILABLE

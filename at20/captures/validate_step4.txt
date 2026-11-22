@@ -1,0 +1,41 @@
+
+========================================================================
+  AT20 — Validation Physique : Prédit vs Mesuré
+  Horodatage : 2026-11-22T10:07:34
+========================================================================
+
+  [BASELINE] Mesure de l'état nominal (30s)...
+    Baseline réel : latence=0.0480 ms, CPU UPF=3.8%
+    Baseline prédit: latence=0.0462 ms
+
+  [S1_embb_burst] Explosion trafic eMBB +250 Mbps (burst charge extrême)
+    Prédit   : latence=0.0568 ms, CPU UPF=84.0%
+    Mesure en cours (30s)...
+    Mesuré   : latence=0.0425 ms, CPU UPF=5.7%, perte=50.0%
+    MAPE latence : 33.6%  |  RMSE latence : 0.0143 ms
+    ⚠️  Violations SLA prédites : 2
+
+  [S2_urllc_critical] Charge critique URLLC — 80 Mbps trafic temps-réel
+    Prédit   : latence=0.0391 ms, CPU UPF=55.0%
+    Mesure en cours (30s)...
+    Mesuré   : latence=0.0575 ms, CPU UPF=4.2%, perte=58.3%
+    MAPE latence : 32.0%  |  RMSE latence : 0.0184 ms
+
+  [S3_gnb_b_failure] Panne gNB-B — UE reroutés vers gNB-A et gNB-C (+50% charge)
+    Prédit   : latence=0.2858 ms, CPU UPF=78.0%
+    Mesure en cours (30s)...
+    Mesuré   : latence=0.0553 ms, CPU UPF=4.8%, perte=50.0%
+    MAPE latence : 417.3%  |  RMSE latence : 0.2306 ms
+    ⚠️  Violations SLA prédites : 1
+
+  [S4_upf_cpu_reduction] Réduction CPU UPF à 35% (limitation ressource)
+    Prédit   : latence=0.0331 ms, CPU UPF=38.5%
+    Mesure en cours (30s)...
+    Mesuré   : latence=0.0460 ms, CPU UPF=3.9%, perte=58.3%
+    MAPE latence : 28.0%  |  RMSE latence : 0.0129 ms
+
+  RÉSUMÉ GLOBAL :
+    MAPE latence moyen : 127.7%
+    RMSE latence moyen : 0.0691 ms
+    → /home/ubuntu/at20/data/comparison.csv écrit (4 scénarios)
+========================================================================

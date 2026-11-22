@@ -1,33 +1,132 @@
-# Livrable AT20 : Digital Twin Intelligent du Réseau 6G
+# AT20 — Digital Twin du Réseau 6G
 
-## 1. Objectif & Cadre
-L'atelier 20 conçoit et déploie un **Digital Twin (Jumeau Numérique)** pour l'architecture 6G distribuée sur AWS EC2 (Open5GS, UERANSIM, k3s).
-Le jumeau prédit en temps réel l'impact de scénarios de trafic et de défaillances (what-if) grâce à un modèle hybride associant la théorie des files d'attente $M/M/1$ et une régression Scikit-Learn calibrée en continu sur les métriques réelles.
+**Statut :** Terminé (preuve : `/home/ubuntu/at20/captures/`)  
+**Date :** 2026-11-22  
+**Infrastructure :** Open5GS v2.8.0 + UERANSIM sur AWS EC2 (vm-cp / vm-ran / vm-upf)
 
-## 2. Architecture & Composants
-- **Collecteur (`at20/collector.py`)** : Interroge toutes les 5s les nœuds réels (`ping -I uesimtun0 10.45.0.1`, `iperf3`, `kubectl top nodes`) et consigne la télémétrie dans `at20/data/metrics.csv`.
-- **Moteur Twin (`at20/twin.py`)** : Modèle $M/M/1$ ($W = 1 / (\mu - \lambda)$) couplé à un régresseur Ridge avec détection automatique des violations SLA (eMBB, URLLC, mMTC).
-- **Validation Physique (`at20/validate.py`)** : Injection réelle des scénarios sur le banc AWS, mesure de l'impact, rétablissement strict de l'état nominal, calcul du MAPE et du RMSE dans `at20/data/comparison.csv`.
-- **Supervision Web (`at20/app.py` & `at20/dashboard.html`)** : Interface interactive animée sans dépendance CDN (port 8090) avec topologie Canvas, particules de flux, jauges CPU, courbes live et simulateur What-If.
+---
 
-## 3. Résultats de Validation Prédit vs Réel (4 Scénarios)
+## 1. Objectif
 
-| Scénario | Description | Latence (Prédit / Réel) | Écart Latence | Débit (Prédit / Réel) | Écart Débit | CPU UPF (Prédit / Réel) | Perte Paquets | Statut SLA |
-|---|---|---|---|---|---|---|---|---|
-| **S1** | Explosion eMBB (+250 Mbps) | 1.383 ms / 1.953 ms | 29.19 % | 775.0 Mbps / 680.0 Mbps | 13.97 % | 69.2 % / 65.0 % | 0.3 % / 0.0 % | SLA Conforme |
-| **S2** | Charge critique URLLC (80 Mbps) | 2.656 ms / 1.605 ms | 65.48 % | 490.0 Mbps / 490.0 Mbps | **0.00 %** | 49.3 % / 45.0 % | 0.0 % / 0.0 % | SLA Conforme |
-| **S3** | Panne gNB-B et ré-aiguillage | 6.035 ms / 6.080 ms | **0.74 %** | 325.0 Mbps / 310.0 Mbps | 4.84 % | 37.8 % / 27.0 % | 0.0 % / 0.0 % | Alerte URLLC |
-| **S4** | Réduction CPU UPF (35%) | 97.696 ms / 30.990 ms | 215.25 % | 350.0 Mbps / 360.0 Mbps | **2.78 %** | 100.0 % / 95.0 % | 6.67 % / 4.8 % | **Violation Totale** |
+Construire un jumeau numérique (Digital Twin) du cœur de réseau 6G émulé, capable de :
+1. Collecter des métriques réelles toutes les 5 secondes
+2. Modéliser la latence par un modèle analytique M/M1 + régression Ridge calibrée
+3. Simuler des scénarios What-If (explosion de trafic, panne, surcharge CPU)
+4. Valider les prédictions par des mesures physiques sur le réseau réel
+5. Visualiser le tout dans un dashboard Flask animé avec badges Réel/Prédit/Généré
 
-- **MAPE Débit Global** : **5.40 %** (RMSE = 48.35 Mbps)
-- **MAPE Latence Globale** : **77.66 %** (RMSE = 33.358 ms, dominé par l'asymptote de congestion S4)
+---
 
-## 4. Incidents & Résolutions
-| Incident rencontré | Cause racine | Parade appliquée |
+## 2. Architecture
+
+```
+VM 6g (172.31.41.25) — coordinateur et dashboard
+├── collector.py    → métriques réelles (ping, SSH, /proc)
+├── twin.py         → DigitalTwin : MM1Model + RidgeModel (Python pur)
+├── scenarios.py    → 4 scénarios paramétrables S1-S4
+├── validate.py     → validation physique 30s par scénario
+├── app.py          → Flask dashboard port 8090
+└── VERIFICATION.md → audit anti-hallucination
+
+data/
+├── metrics.csv     → 9 lignes réelles (collecte Nov 2026)
+├── predictions.csv → 4 prédictions (S1-S4)
+└── comparison.csv  → Prédit vs Mesuré avec MAPE
+
+captures/
+├── discovery_step1.txt
+├── metrics_step1_proof.csv
+├── twin_test_step2.txt
+├── validate_step4.txt
+└── dashboard_step5_200.txt
+```
+
+---
+
+## 3. Résultats
+
+### 3.1 Modèle calibré (Étape 2)
+- **latency_base_ms** = 0.04833 ms (moyenne de 9 mesures réelles ping)
+- Modèle M/M1 : `ρ = λ / μ`, `W = 1/(μ-λ)`
+- Ridge Python pur : calibré sur (ue_count, traffic_mbps, cpu_upf_pct) → latency_ms
+
+### 3.2 Scénarios What-If (Étape 3)
+
+| Scénario | Description | Latence Prédite | Δ vs Baseline |
+|---|---|---|---|
+| S1 | eMBB +250 Mbps burst | 0.0568 ms | +22.9% |
+| S2 | URLLC 80 Mbps | 0.0391 ms | -15.4% |
+| S3 | Panne gNB-B (handover) | 0.2858 ms | **+518.6%** |
+| S4 | CPU UPF 35% | 0.0331 ms | -28.4% |
+
+### 3.3 Validation physique (Étape 4)
+
+| Scénario | Prédit (ms) | Mesuré (ms) | MAPE | RMSE |
+|---|---|---|---|---|
+| S1 eMBB Burst | 0.0568 | 0.0425 | 33.65% | 0.0143 |
+| S2 URLLC 80M | 0.0391 | 0.0575 | 32.00% | 0.0184 |
+| S3 Panne gNB-B | 0.2858 | 0.0553 | **417.3%** | ⚠ |
+| S4 CPU UPF 35% | 0.0331 | 0.0460 | 28.00% | 0.0129 |
+| **Moyen (hors S3)** | — | — | **31.2%** | **0.0152** |
+
+### 3.4 Dashboard Flask (Étape 5)
+- Port 8090, tmux `at20-dashboard`
+- Accès : tunnel SSH `ssh -L 8090:localhost:8090 -i 6g-team-key.pem ubuntu@51.20.191.212`
+- Endpoints : `/dashboard`, `/api/metrics`, `/api/comparison`, `/api/predict`, `/api/export/csv`, `/api/export/json`, `/health`
+
+---
+
+## 4. Analyse
+
+### Modèle M/M1 + Ridge
+- MAPE moyen de 31% (S1, S2, S4) : attendu pour un modèle M/M1 d'ordre 1 calibré sur 9 points
+- Le modèle capture correctement la tendance (charge CPU UPF → latence)
+- Insuffisant pour la précision URLLC (< 1ms requis) : un modèle LSTM entraîné sur > 1000 points serait nécessaire
+
+### Scénario S3 (MAPE 417%)
+- **Cause identifiée** : S3 simule une panne du gNB-B, entraînant un handover vers gNB-A
+- **Problème physique** : il n'existe qu'un seul gNB dans ce testbed AWS → pas de handover réel
+- Le modèle prédit une dégradation massive (0.286 ms) qui ne s'observe pas physiquement (0.055 ms)
+- **Classification** : Non valide pour S3 — scénario de panne non reproductible sans 2 gNB physiques
+
+### Données indisponibles (honnêteté)
+- `throughput_mbps = 0` : iperf3 dans pod CNF namespace réseau isolé, non joignable via IP hôte
+- `slice_urllc/mmtc_latency_ms = NaN` : ogstun2/ogstun3 absents sur vmupf
+- `ue_count = 0` : pas d'UE UERANSIM actif pendant la collecte
+- `handover_count = 0` : **GENERATED** — aucun handover physique possible
+
+---
+
+## 5. Limites
+
+1. **Testbed AWS ≠ 6G commercial** : latences mesurées (~0.05 ms ping interne) ne reflètent pas les latences radio réelles
+2. **Un seul gNB** : scénario de mobilité/handover non reproductible
+3. **9 échantillons** : modèle Ridge sur-adapté, intervalles de confiance larges
+4. **iperf3 indisponible** depuis la VM hôte vers le pod CNF (namespace réseau isolé)
+5. **Open5GS et UERANSIM sont des composants 5G** — les capacités "6G" sont émulées
+
+---
+
+## 6. Incidents
+
+| Incident | Cause | Solution |
 |---|---|---|
-| UERANSIM TUN non monté | Droits sudo requis pour l'interface virtuelle `uesimtun0` | Lancement de `nr-ue` avec `sudo` validé |
-| Port 5201 `Connection refused` | Serveur `iperf3` non persistant | Démarrage en session tmux dédiée sur `vmupf` lié à `0.0.0.0` |
-| 503 Server capacity sur sous-agents | Charge temporaire de l'API | Exécution rigoureuse en direct via SSH par l'agent coordinateur |
+| Sous-agents RESOURCE_EXHAUSTED (429) | Quota LLM dépassé | Exécution directe SSH depuis coordinateur |
+| Twin.py TyperError `data_path` | Mauvaise signature d'argument | Corrigé : `csv_path` découvert par grep |
+| iperf3 non joignable | Pod CNF dans namespace réseau isolé | `throughput_source=UNAVAILABLE`, valeur 0 |
+| MAPE S3 = 417% | Scénario non physique | Documenté, exclu de la moyenne |
+| Ancien metrics.csv de version précédente | Résidu de l'AT20 initial | Backup → nouveau CSV propre |
 
-## 5. Vérification Anti-Hallucination
-L'ensemble des preuves brutes avec commandes et sorties figure dans [AT20-VERIFICATION.md](./AT20-VERIFICATION.md).
+---
+
+## 7. Vérifications de non-régression
+
+```bash
+# Cœur actif
+systemctl is-active open5gs-amfd   → active
+# UPF ogstun joignable
+ping -c 3 -I ogstun 10.45.0.1
+# Dashboard actif
+curl -s http://localhost:8090/health
+```
+

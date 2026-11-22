@@ -1,238 +1,187 @@
 #!/usr/bin/env python3
 """
-AT20 - Validation Réelle des Scénarios What-If & Comparaison Digital Twin
-Applique réellement chaque scénario sur le banc AWS EC2, mesure l'impact réel,
-rétablit l'état initial, calcule MAPE et RMSE, et écrit data/comparison.csv.
+AT20 Digital Twin — Validation physique : Prédit vs Mesuré
+Pour chaque scénario, applique la charge sur le réseau réel,
+mesure 60s, compare MAPE et RMSE par métrique.
+Sortie : data/comparison.csv
 """
+import csv, os, math, subprocess, time, json
+from datetime import datetime, timezone
+from twin import DigitalTwin
+from scenarios import SCENARIOS, BASELINE
 
-import os
-import sys
-import time
-import json
-import subprocess
-import re
-import numpy as np
-import pandas as pd
+COMPARISON_CSV = "/home/ubuntu/at20/data/comparison.csv"
+SSH_KEY = "/home/ubuntu/.ssh/6g-team-key.pem"
 
-DATA_DIR = "/home/ubuntu/at20/data"
-PREDICTIONS_CSV = os.path.join(DATA_DIR, "predictions.csv")
-COMPARISON_CSV = os.path.join(DATA_DIR, "comparison.csv")
+dt = DigitalTwin()
 
-def run_ssh(ip, cmd, timeout=30):
-    ssh_cmd = f"ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/6g-team-key.pem ubuntu@{ip} \"{cmd}\""
+def ssh(host_ip, cmd, timeout=15):
+    full = ["ssh", "-o", "StrictHostKeyChecking=no", "-i", SSH_KEY, f"ubuntu@{host_ip}", cmd]
     try:
-        res = subprocess.run(ssh_cmd, shell=True, capture_output=True, text=True, timeout=timeout)
-        return res.stdout
+        r = subprocess.run(full, capture_output=True, text=True, timeout=timeout)
+        return r.stdout.strip()
     except Exception as e:
-        print(f"Erreur SSH ({ip}): {e}")
-        return ""
+        return f"ERROR: {e}"
 
-def measure_ping(count=5):
-    out = run_ssh("172.31.34.222", f"ping -c {count} -i 0.2 -W 1 -I uesimtun0 10.45.0.1", timeout=count+5)
-    rtt_avg, loss_pct = 1.05, 0.0
-    m_rtt = re.search(r'rtt min/avg/max/mdev = ([0-9.]+)/([0-9.]+)/([0-9.]+)/([0-9.]+)', out)
-    if m_rtt:
-        rtt_avg = float(m_rtt.group(2))
-    m_loss = re.search(r'([0-9.]+)% packet loss', out)
-    if m_loss:
-        loss_pct = float(m_loss.group(1))
-    return rtt_avg, loss_pct
-
-def measure_k8s_cpu(node="vm-upf"):
-    out = run_ssh("172.31.47.81", "sudo k3s kubectl top nodes --no-headers", timeout=5)
-    for line in out.strip().split("\n"):
-        parts = line.split()
-        if len(parts) >= 3 and parts[0] == node:
-            try:
-                return float(parts[2].replace("%", ""))
-            except:
-                pass
-    return 15.0
-
-def restore_network():
-    """Rétablissement strict de l'état initial"""
-    print("[RESET] Rétablissement de l'état initial du réseau...")
-    # 1. Tuer tout iperf client restant sur vmran
-    run_ssh("172.31.34.222", "pkill -u ubuntu -x iperf3 2>/dev/null || true")
-    # 2. S'assurer que nr-gnb tourne (SIGCONT si suspendu)
-    run_ssh("172.31.34.222", "pkill -CONT -u ubuntu -x nr-gnb 2>/dev/null || true")
-    # 3. Arrêter tout stress cpu sur vmupf
-    run_ssh("172.31.38.166", "pkill -u ubuntu -x stress 2>/dev/null || true ; pkill -u ubuntu -x stress-ng 2>/dev/null || true")
-    # 4. Vérifier la connectivité UE -> UPF
-    time.sleep(2)
-    lat, loss = measure_ping(count=3)
-    print(f"[RESET OK] Réseau rétabli. Ping nominal: {lat}ms, perte: {loss}%")
-    return lat < 10.0 and loss == 0.0
-
-def run_scenario_s1():
-    print("\n--- Exécution réelle S1 : Explosion de trafic eMBB (+250 Mbps) ---")
-    # Démarrage iperf3 haute charge sur uesimtun0 en tâche de fond
-    run_ssh("172.31.34.222", "tmux new -d -s iperf_load 'iperf3 -c 10.45.0.1 -B 10.45.0.3 -t 15 -P 2'")
-    time.sleep(3)
-    
-    # Mesures réelles sous charge
-    lat, loss = measure_ping(count=6)
-    cpu_upf = measure_k8s_cpu("vm-upf")
-    
-    # Récupération débit mesuré
-    out = run_ssh("172.31.34.222", "iperf3 -c 10.45.0.1 -B 10.45.0.3 -t 2 -J")
-    th = 680.0
-    try:
-        d = json.loads(out)
-        th = round(d['end']['sum_received']['bits_per_second'] / 1e6, 2)
-    except:
-        pass
-    
-    # Arrêt charge
-    run_ssh("172.31.34.222", "tmux kill-session -t iperf_load 2>/dev/null || pkill -u ubuntu -x iperf3 || true")
-    time.sleep(1)
-    
-    return {"latency_ms": lat, "throughput_mbps": th, "loss_pct": loss, "cpu_upf_pct": max(cpu_upf, 65.0)}
-
-def run_scenario_s2():
-    print("\n--- Exécution réelle S2 : Charge critique URLLC (80 Mbps UDP) ---")
-    run_ssh("172.31.34.222", "tmux new -d -s iperf_urllc 'iperf3 -c 10.45.0.1 -B 10.45.0.3 -u -b 80M -t 12 -l 256'")
-    time.sleep(3)
-    
-    lat, loss = measure_ping(count=5)
-    cpu_upf = measure_k8s_cpu("vm-upf")
-    th = 80.0 + 410.0 # trafic agrégé avec flux de fond
-    
-    run_ssh("172.31.34.222", "tmux kill-session -t iperf_urllc 2>/dev/null || pkill -u ubuntu -x iperf3 || true")
-    time.sleep(1)
-    
-    return {"latency_ms": lat, "throughput_mbps": th, "loss_pct": loss, "cpu_upf_pct": max(cpu_upf, 45.0)}
-
-def run_scenario_s3():
-    print("\n--- Exécution réelle S3 : Panne gNB et ré-aiguillage cellule ---")
-    # Pause du gNB pendant 4 secondes (émulation coupure lien radio / failover)
-    run_ssh("172.31.34.222", "pkill -STOP -u ubuntu -x nr-gnb")
-    time.sleep(2)
-    # Mesure ping pendant perturbation (mesure des pertes)
-    out_drop = run_ssh("172.31.34.222", "ping -c 3 -W 1 -I uesimtun0 10.45.0.1 || true")
-    time.sleep(2)
-    # Rétablissement gNB
-    run_ssh("172.31.34.222", "pkill -CONT -u ubuntu -x nr-gnb")
-    time.sleep(2)
-    lat_rec, loss_rec = measure_ping(count=4)
-    # Latence moyenne intégrant le délai de reconnexion
-    lat_effective = round(lat_rec + 4.2, 2)
-    cpu_upf = measure_k8s_cpu("vm-upf")
-    th = 310.0
-    
-    return {"latency_ms": lat_effective, "throughput_mbps": th, "loss_pct": 0.0, "cpu_upf_pct": cpu_upf}
-
-def run_scenario_s4():
-    print("\n--- Exécution réelle S4 : Réduction CPU UPF (Throttle / Stress) ---")
-    # Injection charge CPU sur vm-upf pour réduire le temps CPU disponible pour l'UPF
-    run_ssh("172.31.38.166", "tmux new -d -s stress_upf 'python3 -c \"import time; [sum(i*i for i in range(1000000)) for _ in range(300)]\"'")
-    time.sleep(2)
-    lat, loss = measure_ping(count=5)
-    lat_stressed = round(lat * 18.5, 2) # Impact saturation file d'attente
-    cpu_upf = 95.0
-    th = 360.0
-    loss_stressed = 4.8
-    
-    run_ssh("172.31.38.166", "tmux kill-session -t stress_upf 2>/dev/null || pkill -u ubuntu -f python3 || true")
-    time.sleep(1)
-    
-    return {"latency_ms": lat_stressed, "throughput_mbps": th, "loss_pct": loss_stressed, "cpu_upf_pct": cpu_upf}
-
-def main():
-    print("=== Démarrage de la validation réelle des 4 scénarios AT20 ===")
-    
-    # 1. Vérification prédictions
-    if not os.path.exists(PREDICTIONS_CSV):
-        print(f"Erreur : {PREDICTIONS_CSV} inexistant. Exécuter twin.py d'abord.")
-        sys.exit(1)
-    df_pred = pd.read_csv(PREDICTIONS_CSV)
-    
-    results = []
-    
-    scenarios_funcs = [
-        ("S1_eMBB_Burst", run_scenario_s1),
-        ("S2_URLLC_Critical", run_scenario_s2),
-        ("S3_gNB_Failure", run_scenario_s3),
-        ("S4_UPF_CPU_Limit", run_scenario_s4)
-    ]
-    
-    for s_id, s_func in scenarios_funcs:
-        # Récupération de la prédiction
-        row_p = df_pred[df_pred["scenario_id"] == s_id].iloc[0]
-        
-        # Exécution réelle
-        t0 = time.time()
-        meas = s_func()
-        duration = round(time.time() - t0, 1)
-        
-        # Rétablissement
-        restore_network()
-        
-        # Calcul des écarts
-        pred_lat = float(row_p["pred_latency_ms"])
-        meas_lat = float(meas["latency_ms"])
-        err_lat_pct = round(abs(meas_lat - pred_lat) / max(meas_lat, 0.001) * 100.0, 2)
-        
-        pred_th = float(row_p["pred_throughput_mbps"])
-        meas_th = float(meas["throughput_mbps"])
-        err_th_pct = round(abs(meas_th - pred_th) / max(meas_th, 0.001) * 100.0, 2)
-        
-        pred_loss = float(row_p["pred_loss_pct"])
-        meas_loss = float(meas["loss_pct"])
-        err_loss_abs = round(abs(meas_loss - pred_loss), 2)
-        
-        pred_cpu = float(row_p["pred_cpu_upf_pct"])
-        meas_cpu = float(meas["cpu_upf_pct"])
-        err_cpu_pct = round(abs(meas_cpu - pred_cpu) / max(meas_cpu, 0.001) * 100.0, 2)
-        
-        # Statut SLA réel
-        sla_violated = meas_lat > 15.0 or meas_loss > 1.0 or meas_th < 100.0
-        
-        print(f"[{s_id}] RÉSULTATS :")
-        print(f"  Latence: Prédit={pred_lat}ms, Réel={meas_lat}ms (Écart={err_lat_pct}%)")
-        print(f"  Débit:   Prédit={pred_th}Mbps, Réel={meas_th}Mbps (Écart={err_th_pct}%)")
-        print(f"  CPU UPF: Prédit={pred_cpu}%, Réel={meas_cpu}% (Écart={err_cpu_pct}%)")
-        print(f"  Perte:   Prédit={pred_loss}%, Réel={meas_loss}%")
-        
-        results.append({
-            "scenario_id": s_id,
-            "scenario_desc": row_p["scenario_desc"],
-            "pred_latency_ms": pred_lat,
-            "meas_latency_ms": meas_lat,
-            "mape_latency_pct": err_lat_pct,
-            "pred_throughput_mbps": pred_th,
-            "meas_throughput_mbps": meas_th,
-            "mape_throughput_pct": err_th_pct,
-            "pred_cpu_pct": pred_cpu,
-            "meas_cpu_pct": meas_cpu,
-            "mape_cpu_pct": err_cpu_pct,
-            "pred_loss_pct": pred_loss,
-            "meas_loss_pct": meas_loss,
-            "diff_loss_abs": err_loss_abs,
-            "meas_duration_s": duration,
-            "sla_violated_pred": row_p["sla_violated"],
-            "sla_violated_meas": sla_violated,
-            "data_origin": "REAL_MEASURED_VS_PREDICTED"
+def measure_real(duration_s=30):
+    """Mesure les métriques réelles sur le réseau pendant duration_s secondes."""
+    measurements = []
+    start = time.time()
+    while time.time() - start < duration_s:
+        # Latence réelle via ping vers ogstun UPF
+        ping_out = subprocess.run(
+            ["ping", "-c", "3", "-W", "1", "10.45.0.1"],
+            capture_output=True, text=True, timeout=5
+        )
+        lat = float("nan")
+        loss = float("nan")
+        for line in ping_out.stdout.splitlines():
+            if "avg" in line and "/" in line:
+                try:
+                    lat = float(line.split("/")[4])
+                except Exception:
+                    pass
+            if "packet loss" in line:
+                try:
+                    loss = float(line.split("%")[0].split()[-1])
+                except Exception:
+                    pass
+        # CPU réel via kubectl top
+        ktops = ssh("172.31.47.81", "sudo k3s kubectl top nodes --no-headers 2>/dev/null")
+        cpu_vmcp = cpu_vmran = cpu_vmupf = float("nan")
+        if ktops and "ERROR" not in ktops:
+            for line in ktops.splitlines():
+                parts = line.split()
+                if len(parts) >= 2:
+                    name = parts[0].lower()
+                    try:
+                        pct = float(parts[1].replace("m", "")) / 10.0
+                    except Exception:
+                        pct = float("nan")
+                    if "cp" in name:
+                        cpu_vmcp = pct
+                    elif "ran" in name:
+                        cpu_vmran = pct
+                    elif "upf" in name:
+                        cpu_vmupf = pct
+        measurements.append({
+            "latency_ms": lat,
+            "loss_pct": loss,
+            "cpu_vmcp_pct": cpu_vmcp,
+            "cpu_vmran_pct": cpu_vmran,
+            "cpu_vmupf_pct": cpu_vmupf,
         })
-        
-        time.sleep(2)
-        
-    df_comp = pd.DataFrame(results)
-    df_comp.to_csv(COMPARISON_CSV, index=False)
-    
-    # Calcul Global MAPE & RMSE
-    overall_mape_lat = df_comp["mape_latency_pct"].mean()
-    overall_rmse_lat = np.sqrt(((df_comp["meas_latency_ms"] - df_comp["pred_latency_ms"])**2).mean())
-    
-    overall_mape_th = df_comp["mape_throughput_pct"].mean()
-    overall_rmse_th = np.sqrt(((df_comp["meas_throughput_mbps"] - df_comp["pred_throughput_mbps"])**2).mean())
+        time.sleep(5)
+    return measurements
 
-    print("\n" + "="*50)
-    print("BILAN GLOBAL DIGITAL TWIN VS RÉSEAU RÉEL")
-    print(f"MAPE Latence globale    : {overall_mape_lat:.2f} % (RMSE: {overall_rmse_lat:.3f} ms)")
-    print(f"MAPE Débit global      : {overall_mape_th:.2f} % (RMSE: {overall_rmse_th:.2f} Mbps)")
-    print(f"Fichier de comparaison : {COMPARISON_CSV}")
-    print("="*50)
+def safe_mean(vals):
+    v = [x for x in vals if not math.isnan(x)]
+    return sum(v) / len(v) if v else float("nan")
 
-if __name__ == "__main__":
-    main()
+def mape(predicted, measured):
+    if math.isnan(predicted) or math.isnan(measured) or measured == 0:
+        return float("nan")
+    return abs(predicted - measured) / abs(measured) * 100
+
+def rmse(predicted, measured):
+    if math.isnan(predicted) or math.isnan(measured):
+        return float("nan")
+    return math.sqrt((predicted - measured) ** 2)
+
+def apply_scenario_load(scenario_id, params):
+    """
+    Applique la charge réseau réelle pour un scénario.
+    Méthode : injecter du trafic iperf3 UDP vers vmupf depuis la VM 6g.
+    La cible ogstun UPF (10.45.0.1) reçoit des paquets UDP.
+    """
+    traffic_mbps = params.get("traffic_mbps", 0)
+    if traffic_mbps > 0:
+        # Lancer iperf3 en mode UDP depuis 6g vers vmupf (ogstun 10.45.0.1)
+        # Serveur sur vmupf en arrière-plan 60s
+        ssh("172.31.38.166", "pkill iperf3 2>/dev/null; nohup iperf3 -s -p 5900 -D 2>/dev/null")
+        time.sleep(1)
+        # Client depuis 6g (non bloquant)
+        load_cmd = f"nohup iperf3 -c 10.45.0.1 -p 5900 -u -b {min(traffic_mbps,100)}M -t 50 >/dev/null 2>&1 &"
+        subprocess.Popen(["bash", "-c", load_cmd])
+    return True
+
+def restore_initial_state(scenario_id):
+    """Rétablit l'état initial après chaque test."""
+    subprocess.run(["bash", "-c", "pkill iperf3 2>/dev/null"], capture_output=True)
+    ssh("172.31.38.166", "pkill iperf3 2>/dev/null")
+    time.sleep(2)
+
+print(f"\n{'='*72}")
+print(f"  AT20 — Validation Physique : Prédit vs Mesuré")
+print(f"  Horodatage : {datetime.now(timezone.utc).isoformat()[:19]}")
+print(f"{'='*72}\n")
+
+# Phase 0 : Mesure baseline
+print("  [BASELINE] Mesure de l'état nominal (30s)...")
+baseline_pred = dt.predict(**BASELINE)
+baseline_real = measure_real(duration_s=30)
+baseline_lat_real = safe_mean([m["latency_ms"] for m in baseline_real])
+baseline_cpu_real = safe_mean([m["cpu_vmupf_pct"] for m in baseline_real])
+print(f"    Baseline réel : latence={baseline_lat_real:.4f} ms, CPU UPF={baseline_cpu_real:.1f}%")
+print(f"    Baseline prédit: latence={baseline_pred['predicted_latency_combined_ms']:.4f} ms\n")
+
+comparison_rows = []
+for sid, scenario in SCENARIOS.items():
+    params = scenario["params"]
+    pred = dt.predict(**params)
+    print(f"  [{sid}] {scenario['description'][:60]}")
+    print(f"    Prédit   : latence={pred['predicted_latency_combined_ms']:.4f} ms, CPU UPF={pred['predicted_cpu_upf_pct']:.1f}%")
+
+    # Appliquer la charge
+    apply_scenario_load(sid, params)
+    print(f"    Mesure en cours (30s)...")
+    real_measures = measure_real(duration_s=30)
+    restore_initial_state(sid)
+
+    real_lat = safe_mean([m["latency_ms"] for m in real_measures])
+    real_cpu = safe_mean([m["cpu_vmupf_pct"] for m in real_measures])
+    real_loss = safe_mean([m["loss_pct"] for m in real_measures])
+
+    print(f"    Mesuré   : latence={real_lat:.4f} ms, CPU UPF={real_cpu:.1f}%, perte={real_loss:.1f}%")
+
+    # MAPE et RMSE
+    mape_lat = mape(pred["predicted_latency_combined_ms"], real_lat)
+    rmse_lat = rmse(pred["predicted_latency_combined_ms"], real_lat)
+    mape_cpu = mape(pred["predicted_cpu_upf_pct"], real_cpu)
+
+    print(f"    MAPE latence : {mape_lat:.1f}%  |  RMSE latence : {rmse_lat:.4f} ms")
+    if pred["sla_violations"]:
+        print(f"    ⚠️  Violations SLA prédites : {len(pred['sla_violations'])}")
+    print()
+
+    comparison_rows.append({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "scenario_id": sid,
+        "description": scenario["description"],
+        "predicted_latency_ms": pred["predicted_latency_combined_ms"],
+        "measured_latency_ms": round(real_lat, 4),
+        "mape_latency_pct": round(mape_lat, 2),
+        "rmse_latency_ms": round(rmse_lat, 4),
+        "predicted_cpu_upf_pct": pred["predicted_cpu_upf_pct"],
+        "measured_cpu_upf_pct": round(real_cpu, 2),
+        "mape_cpu_pct": round(mape_cpu, 2),
+        "predicted_loss_pct": pred["predicted_loss_pct"],
+        "measured_loss_pct": round(real_loss, 2),
+        "sla_violations": " | ".join(pred["sla_violations"]) if pred["sla_violations"] else "NONE",
+        "source": "real_measurement",
+    })
+
+os.makedirs(os.path.dirname(COMPARISON_CSV), exist_ok=True)
+with open(COMPARISON_CSV, "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=list(comparison_rows[0].keys()))
+    writer.writeheader()
+    writer.writerows(comparison_rows)
+
+# Résumé global
+mapes = [r["mape_latency_pct"] for r in comparison_rows if not math.isnan(r["mape_latency_pct"])]
+rmses = [r["rmse_latency_ms"] for r in comparison_rows if not math.isnan(r["rmse_latency_ms"])]
+print(f"  RÉSUMÉ GLOBAL :")
+print(f"    MAPE latence moyen : {safe_mean(mapes):.1f}%")
+print(f"    RMSE latence moyen : {safe_mean(rmses):.4f} ms")
+print(f"    → {COMPARISON_CSV} écrit ({len(comparison_rows)} scénarios)")
+print(f"{'='*72}")

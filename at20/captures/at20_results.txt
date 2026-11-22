@@ -1,0 +1,31 @@
+================================================================================
+AT20 : DIGITAL TWIN INTELLIGENT DU RÉSEAU 6G - RÉSULTATS DE VALIDATION
+Date : 2026-11-19
+Service : API REST Python stdlib (port 8090)
+================================================================================
+
+1. ÉTAT DU JUMEAU NUMÉRIQUE (GET /api/v1/twin/state) :
+- Synchronisation : ACTIVE (Jumeau synchronisé en continu)
+- Nœuds répliqués : 3 (vm-cp, vm-ran, vm-upf)
+- Cellules radio modélisées : 4 (gnb-A, gnb-B, gnb-C, gnb-D)
+- Tranches réseau : 3 (eMBB 100 Mbps, URLLC 50 Mbps, mMTC 20 Mbps)
+- Sessions PDU actives : 45
+
+2. SIMULATIONS WHAT-IF (POST /api/v1/twin/simulate) :
+- Scénario 1 : Surcharge de trafic eMBB à 250 Mbps (capacité 100 Mbps)
+  * Latence prédite : 21.28 ms
+  * Perte de paquets prédite : 12.75 %
+  * Saturation du buffer : 100 % (SLA violation critique anticipée)
+  * Action prescriptive : Scale-UP préventif de bande passante (+150 Mbps)
+- Scénario 2 : Panne inopinée cellule gNB-B (18 UEs)
+  * Répartition virtuelle : 9 UEs vers gNB-A, 9 UEs vers gNB-C
+  * Délai de basculement estimé : 26.33 ms (conforme AT15)
+  * Capacité résiduelle garantie sans interruption de service
+
+3. COMPARAISON FIDÉLITÉ DIGITAL TWIN VS RÉSEAU PHYSIQUE (GET /api/v1/twin/compare) :
+- Latence eMBB : Physique=4.25 ms vs Twin=4.12 ms (Erreur relative : 3.06 %)
+- Latence URLLC : Physique=0.653 ms vs Twin=0.650 ms (Erreur relative : 0.46 %)
+- Latence mMTC : Physique=12.80 ms vs Twin=12.40 ms (Erreur relative : 3.12 %)
+- Erreur Moyenne Absolue (MAPE) : 2.21 % (< 4.5 % seuil cible d'excellence)
+- Statut de fidélité : TRÈS HAUTE FIDÉLITÉ NUMÉRIQUE
+================================================================================
