@@ -1,0 +1,172 @@
+=== AT22 Quantum ML Proof ===
+Sun Nov 22 11:21:10 UTC 2026
+
+=== problem.py ===
+Slices : ['eMBB', 'URLLC', 'mMTC']
+Niveaux : [20, 30, 50] Mbps | Budget : 100 Mbps
+Variables QUBO : 9 | Espace Hilbert : 2^9 = 512 etats
+Matrice QUBO : (9, 9)
+Exemple evaluation : {
+  "utility_total": 2.6,
+  "bandwidth_used": 100,
+  "sla_violations": [],
+  "allocation": {
+    "eMBB": {
+      "bw_mbps": 30,
+      "utility": 0.6
+    },
+    "URLLC": {
+      "bw_mbps": 50,
+      "utility": 1.0
+    },
+    "mMTC": {
+      "bw_mbps": 20,
+      "utility": 1.0
+    }
+  },
+  "feasible": true
+}
+
+=== classical_solver.py ===
+=== Solveur Glouton ===
+{
+  "utility_total": 2.8,
+  "bandwidth_used": 90,
+  "sla_violations": [],
+  "allocation": {
+    "eMBB": {
+      "bw_mbps": 50,
+      "utility": 1.0
+    },
+    "URLLC": {
+      "bw_mbps": 20,
+      "utility": 0.8
+    },
+    "mMTC": {
+      "bw_mbps": 20,
+      "utility": 1.0
+    }
+  },
+  "feasible": true,
+  "solver": "greedy_classical",
+  "time_ms": 0.0137
+}
+
+=== Brute Force Optimal ===
+{
+  "utility_total": 3.0,
+  "bandwidth_used": 100,
+  "sla_violations": [],
+  "allocation": {
+    "eMBB": {
+      "bw_mbps": 50,
+      "utility": 1.0
+    },
+    "URLLC": {
+      "bw_mbps": 30,
+      "utility": 1.0
+    },
+    "mMTC": {
+      "bw_mbps": 20,
+      "utility": 1.0
+    }
+  },
+  "feasible": true,
+  "solver": "brute_force_optimal",
+  "time_ms": 0.104,
+  "n_explored": 27
+}
+
+Glouton utility   : 2.8
+Optimal utility   : 3.0
+Gap glouton/opt   : 6.67%
+
+=== qaoa_simulator.py ===
+QAOA simulateur : 9 qubits, dim Hilbert = 512
+{
+  "utility_total": 3.0,
+  "bandwidth_used": 100,
+  "sla_violations": [],
+  "allocation": {
+    "eMBB": {
+      "bw_mbps": 50,
+      "utility": 1.0
+    },
+    "URLLC": {
+      "bw_mbps": 30,
+      "utility": 1.0
+    },
+    "mMTC": {
+      "bw_mbps": 20,
+      "utility": 1.0
+    }
+  },
+  "feasible": true,
+  "solver": "QAOA_numpy_simulated",
+  "n_qubits": 9,
+  "hilbert_dim": 512,
+  "p_layers": 1,
+  "n_restarts": 5,
+  "gamma_opt": 2.464,
+  "beta_opt": 1.9407,
+  "qaoa_energy": -21.1014,
+  "time_ms": 944.4
+}
+
+=== HTTP /health ===
+{"status":"ok","timestamp":"2026-11-22T11:21:11.619469Z"}
+
+=== /api/comparison ===
+[
+    {
+        "brute_bw": "100",
+        "brute_time_ms": "0.0989",
+        "brute_utility": "3.0",
+        "gap_greedy_pct": "6.67",
+        "gap_qaoa_pct": "0.0",
+        "greedy_bw": "90",
+        "greedy_time_ms": "0.0159",
+        "greedy_utility": "2.8",
+        "qaoa_beta": "1.9407",
+        "qaoa_bw": "100",
+        "qaoa_gamma": "2.464",
+        "qaoa_matches_optimal": "True",
+        "qaoa_time_ms": "482.4",
+        "qaoa_utility": "3.0",
+        "run": "1"
+    },
+    {
+        "brute_bw": "100",
+        "brute_time_ms": "0.1052",
+        "brute_utility": "3.0",
+        "gap_greedy_pct": "6.67",
+        "gap_qaoa_pct": "0.0",
+        "greedy_bw": "90",
+        "greedy_time_ms": "0.0117",
+        "greedy_utility": "2.8",
+        "qaoa_beta": "1.9407",
+        "qaoa_bw": "100",
+        "qaoa_gamma": "2.464",
+        "qaoa_matches_optimal": "True",
+        "qaoa_time_ms": "558.1",
+        "qaoa_utility": "3.0",
+        "run": "2"
+    },
+    {
+        "brute_bw": "100",
+        "brute_time_ms": "0.1674",
+        "brute_utility": "3.0",
+        "gap_greedy_pct": "6.67",
+        "gap_qaoa_pct": "0.0",
+        "greedy_bw": "90",
+        "greedy_time_ms": "0.0119",
+        "greedy_utility": "2.8",
+        "qaoa_beta": "1.9407",
+        "qaoa_bw": "100",
+        "qaoa_gamma": "2.464",
+        "qaoa_matches_optimal": "True",
+        "qaoa_time_ms": "550.8",
+        "qaoa_utility": "3.0",
+        "run": "3"
+    }
+]

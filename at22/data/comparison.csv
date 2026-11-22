@@ -1,0 +1,4 @@
+run,greedy_utility,greedy_bw,greedy_time_ms,brute_utility,brute_bw,brute_time_ms,qaoa_utility,qaoa_bw,qaoa_time_ms,qaoa_gamma,qaoa_beta,gap_greedy_pct,gap_qaoa_pct,qaoa_matches_optimal
+1,2.8,90,0.0159,3.0,100,0.0989,3.0,100,482.4,2.464,1.9407,6.67,0.0,True
+2,2.8,90,0.0117,3.0,100,0.1052,3.0,100,558.1,2.464,1.9407,6.67,0.0,True
+3,2.8,90,0.0119,3.0,100,0.1674,3.0,100,550.8,2.464,1.9407,6.67,0.0,True
